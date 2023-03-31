@@ -2,7 +2,7 @@ from flask import jsonify
 from flask_restful import abort, Resource
 import datetime
 
-from data.movies_reqparcer import parser
+from data.movies_reqparcer import parser, search_parser
 
 from data.db_session import create_session
 from data.movies import Movies
@@ -43,9 +43,17 @@ class MoviesListResource(Resource):
         movie = Movies()
         world_release_date = datetime.date.fromisoformat(args['world_release_date']) \
             if 'world_release_date' in args and args['world_release_date'] else None
-        movie.publisher, movie.title, movie.description, movie.duration_min, movie.genres, movie.world_release_date, \
-            movie.user_released = args['publisher'], args['title'], args['description'], args['duration_min'], \
-            args['genres'], world_release_date, args['user_released']
+        movie.publisher, movie.type, movie.title, movie.description, movie.duration, movie.genres, \
+            movie.world_release_date = args['publisher'], args['type'], args['title'], args['description'], \
+            args['duration'], args['genres'], world_release_date
         session.add(movie)
         session.commit()
         return jsonify({'success': 'OK'})
+
+
+class MoviesSearch(Resource):
+    def post(self):
+        args = search_parser.parse_args()
+        session = create_session()
+        movies = session.query(Movies).filter(Movies.title.ilike(f'%{args["q"]}%')).all()
+        return jsonify({'movies': [item.to_dict(only=('id', 'title', 'cover')) for item in movies]})

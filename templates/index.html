@@ -5,9 +5,9 @@
 <h2 class="page-big-title">Посмотреть фильм/сериал</h2>
 <p class="page-big-title-desc">Сайт создавался исключительно в образовательных целях.</p>
 <div class="search-big-box">
-    <form class="search-big-form">
-        <input type="text" id="search_query" class="search_query" placeholder="Титаник">
-        <button>
+    <form class="search-big-form" method="GET" action="/search">
+        <input type="text" name="q" placeholder="Титаник">
+        <button type="submit">
             <img src="/static/img/search.png.webp">
             Искать
         </button>

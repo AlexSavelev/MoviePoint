@@ -105,6 +105,7 @@ ul.header-menu a {
 .page-big-title-left-desc a {
     border-bottom: 1px solid #1befc5;
 }
+
 .search-big-box {
     width: 70%;
     margin: auto;
@@ -137,6 +138,42 @@ ul.header-menu a {
     font-weight: 600;
     color: #1f1d22;
 }
+
+.search-mid-box {
+    background-color: #25103f;
+    padding: 30px;
+}
+.search-mid-form {
+    display: flex;
+    flex-direction: row;
+    width: 60%;
+    margin: auto;
+}
+.search-mid-form input {
+    background-color: #ffffff;
+    border-radius: 12px;
+    height: 60px;
+    border: none;
+    outline: none;
+    font-size: 24px;
+    width: calc(100% - 400px);
+    padding-left: 20px;
+}
+.search-mid-form button {
+    margin-left: 30px;
+    width: 166px;
+    height: 60px;
+    background: #1befc5;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1f1d22;
+}
+
+
 .cloud
 {
     position: absolute;
@@ -203,6 +240,7 @@ ul.header-menu a {
 
 main {
     padding: 20px;
+    min-height: 300px;
 }
 
 .services-list {
@@ -302,4 +340,39 @@ ul.footer-menu li {
     width: 50%;
     margin: auto;
     font-size: 19px;
+}
+
+
+.media-list {
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    margin-top: 50px;
+    display: flex;
+    flex-wrap: wrap;
+}
+.media-list-item {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 2px solid #555555;
+    border-radius: 10px;
+    overflow: hidden;
+
+    height: 400px;
+    max-height: 400px;
+    max-width: 300px;
+    width: 300px;
+}
+.media-list-item img {
+    width: 100%;
+}
+.search-alert {
+    margin: auto;
+    width: 80%;
+    height: 30px;
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 60px;
 }

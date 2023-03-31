@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block header2 %}
+<div class="header2-mini">
+    <h2 class="page-big-title-left">Поиск</h2>
+</div>
+<div class="search-mid-box">
+    <form class="search-mid-form" method="GET" action="/search">
+        <input type="text" name="q" placeholder="Титаник">
+        <button type="submit">
+            <img src="/static/img/search.png.webp">
+            Искать
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="header2-content">
+    {% if not_found %}
+    <div class="alert alert-info search-alert" role="alert"><p>Ничего не найдено</p></div>
+    {% endif %}
+
+    <div class="media-list">
+        {% for media in medias %}
+            <a href="{{media.watch_ref}}" class="media-list-item">
+                <img src="{{media.cover_ref}}" alt="{{media.title}}">
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
