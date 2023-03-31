@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" type="image/png" href="/favicon.ico"/>
+</head>
+<body>
+<header>
+    <div class="header1">
+        <div class="header-elem"><h1 class="header-site-name"><a href="/">Movie<span>Point</span></a></h1></div>
+        <div class="header-elem header-menu-div">
+            <ul class="header-menu">
+                {% if current_user.is_authenticated %}
+                    <li><a href="/search" class="login-register-ref">Поиск</a></li>
+                    <li><a href="/my" class="login-register-ref">Мои фильмы/сериалы</a></li>
+                    <li><a href="/logout" class="login-register-ref">{{ current_user.username }}</a></li>
+                {% else %}
+                    <li><a href="/login" class="login-register-ref">Войти</a></li>
+                    <li><a href="/register" class="login-register-ref">Зарегистрироваться</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    {% block header2 %}{% endblock %}
+</header>
+<main>
+    {% block main %}{% endblock %}
+</main>
+<footer>
+    <p class="footer-site-name"><span>2023</span> MoviePoint</p>
+    <div class="footer-menu-div">
+        <ul class="footer-menu">
+            <li><a href="https://github.com/AlexSavelev/MoviePoint" target="_blank" class="footer-menu-elem">О проекте (GitHub)</a></li>
+        </ul>
+    </div>
+</footer>
+</body>
+</html>
