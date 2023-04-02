@@ -43,9 +43,10 @@ class MoviesListResource(Resource):
         movie = Movies()
         world_release_date = datetime.date.fromisoformat(args['world_release_date']) \
             if 'world_release_date' in args and args['world_release_date'] else None
-        movie.publisher, movie.type, movie.title, movie.description, movie.duration, movie.genres, \
-            movie.world_release_date = args['publisher'], args['type'], args['title'], args['description'], \
-            args['duration'], args['genres'], world_release_date
+        movie.publisher, movie.type, movie.title, movie.description, movie.duration, movie.genres, movie.country, \
+            movie.director, movie.age, movie.world_release_date = args['publisher'], args['type'], args['title'], \
+            args['description'], args['duration'], args['genres'], args['country'], args['director'], args['age'], \
+            world_release_date
         session.add(movie)
         session.commit()
         return jsonify({'success': 'OK'})
@@ -54,6 +55,11 @@ class MoviesListResource(Resource):
 class MoviesSearch(Resource):
     def post(self):
         args = search_parser.parse_args()
+        q = args["q"].lower()
         session = create_session()
-        movies = session.query(Movies).filter(Movies.title.ilike(f'%{args["q"]}%')).all()
+        # movies = session.query(Movies).filter(Movies.title.ilike(f'%{args["q"].lower()}%')).all()
+        movies = []
+        for i in session.query(Movies).all():
+            if q in i.title.lower():
+                movies.append(i)
         return jsonify({'movies': [item.to_dict(only=('id', 'title', 'cover')) for item in movies]})

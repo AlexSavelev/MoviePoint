@@ -1,10 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600&display=swap');
 
 
-#carouselExampleIndicators {
-    max-width: 300px;
-}
-
 ::selection {
     color: #ffffff;
     background: #1befc5;
@@ -375,4 +371,52 @@ ul.footer-menu li {
     padding: 20px;
     margin-top: 20px;
     margin-bottom: 60px;
+}
+
+.movie-video-block {
+    margin-left: auto;
+    margin-right: auto;
+    width: 1280px;
+    margin-top: 50px;
+    margin-bottom: 100px;
+}
+
+.movie-gallery-block {
+    background-color: hsl(0,0%,90%);
+}
+
+#carouselIndicators {
+    width: 60%;
+    max-width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.images-carousel-item-block {
+    height: 700px;
+    position: relative;
+}
+.images-carousel-item-block img {
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+.carousel-control-prev-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23200e35' viewBox='0 0 8 8'%3E%3Cpath d='M5.25 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z'/%3E%3C/svg%3E");
+}
+.carousel-control-next-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23200e35' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath d='M2.75 0l-1.5 1.5L3.75 4l-2.5 2.5L2.75 8l4-4-4-4z'/%3e%3c/svg%3e")
+}
+
+.movie-info-block {
+    background-color: hsl(0,0%,90%);
+    padding: 50px;
 }
