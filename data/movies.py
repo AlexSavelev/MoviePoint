@@ -23,7 +23,5 @@ class Movies(SqlAlchemyBase, SerializerMixin):
     series = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     cover = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     images = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    rating_sum = sqlalchemy.Column(sqlalchemy.Integer, default=0)
-    rating_count = sqlalchemy.Column(sqlalchemy.Integer, default=0)
 
     user = orm.relationship('User')
