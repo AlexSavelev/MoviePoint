@@ -128,9 +128,9 @@ def search():
                                                                  'must_be_released': True}).json()['movies']
         if not medias:
             nf = True
-            medias = get(f'{SITE_PATH}/api/v1/movies').json()['movies']
+            medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'must_be_released': True}).json()['movies']
     else:
-        medias = get(f'{SITE_PATH}/api/v1/movies').json()['movies']
+        medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'must_be_released': True}).json()['movies']
     medias = [
         {'title': i['title'],
          'watch_ref': f'/watch/{i["id"]}',
@@ -188,18 +188,18 @@ def my():
     if check_user_is_not_authorized('/my'):
         return redirect('/login')
     medias = post(f'{SITE_PATH}/api/v1/movies/search', json={
-        'q': '', 'must_be_released': True, 'publisher': current_user.id}).json()['movies']
+        'must_be_released': False, 'publisher': current_user.id}).json()['movies']
     medias = [
         {'title': i['title'],
          'editor_ref': f'/my/edit/{i["id"]}',
          'cover_ref': make_image_path(i['id'], i['cover'])
          } for i in medias]
     medias.append({
-        'title': 'Добавить',
+        'title': 'Загрузить',
         'editor_ref': f'/my/new',
-        'cover_ref': '/static/img/'
+        'cover_ref': '/static/img/new_movie.png'
     })
-    return render_template('my.html', title='Мои фильмы/сериалы', medias=medias)
+    return render_template('my.html', title='Мои фильмы/сериалы', medias=medias, number_of_loads=len(medias) - 1)
 
 
 if __name__ == '__main__':

@@ -13,6 +13,6 @@ parser.add_argument('age', required=False)
 parser.add_argument('world_release_date', required=False)
 
 search_parser = reqparse.RequestParser()
-search_parser.add_argument('q', required=True, type=str)
+search_parser.add_argument('q', required=False, type=str)
 search_parser.add_argument('must_be_released', required=False, type=bool)
 search_parser.add_argument('publisher', required=False, type=int)

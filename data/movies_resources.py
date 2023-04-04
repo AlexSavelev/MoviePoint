@@ -55,9 +55,9 @@ class MoviesListResource(Resource):
 class MoviesSearch(Resource):
     def post(self):
         args = search_parser.parse_args()
-        q = args['q'].lower()
-        must_be_released = args['must_be_released'] if 'must_be_released' in args else False
-        publisher = args['publisher'] if 'publisher' in args else 0
+        q = args['q'].lower() if args['q'] is not None else ''
+        must_be_released = args['must_be_released'] if args['must_be_released'] is not None else False
+        publisher = args['publisher'] if args['publisher'] is not None else 0
         session = create_session()
         # movies = session.query(Movies).filter(Movies.title.ilike(f'%{args["q"].lower()}%')).all()
         movies = []
