@@ -124,7 +124,8 @@ def search():
     query_text = request.args.get('q', default='', type=str)
     nf = False
     if query_text:
-        medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'q': query_text}).json()['movies']
+        medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'q': query_text,
+                                                                 'must_be_released': True}).json()['movies']
         if not medias:
             nf = True
             medias = get(f'{SITE_PATH}/api/v1/movies').json()['movies']
@@ -180,6 +181,27 @@ def watch(movie_id):
     return render_template('watch.html', title=f'Смотреть "{movie.title}"', movie_title=movie.title, movie_id=movie_id,
                            publisher=movie.user.username, additional_css_links=additional_css_links, seasons=seasons,
                            src=src, images=images)
+
+
+@app.route('/my')
+def my():
+    if check_user_is_not_authorized('/my'):
+        return redirect('/login')
+    query_text = request.args.get('q', default='', type=str)
+    nf = False
+    if query_text:
+        medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'q': query_text}).json()['movies']
+        if not medias:
+            nf = True
+            medias = get(f'{SITE_PATH}/api/v1/movies').json()['movies']
+    else:
+        medias = get(f'{SITE_PATH}/api/v1/movies').json()['movies']
+    medias = [
+        {'title': i['title'],
+         'watch_ref': f'/watch/{i["id"]}',
+         'cover_ref': make_image_path(i['id'], i['cover'])
+         } for i in medias]
+    return render_template('search.html', title='Поиск', not_found=nf, medias=medias, q=query_text)
 
 
 if __name__ == '__main__':
