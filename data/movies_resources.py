@@ -57,13 +57,13 @@ class MoviesSearch(Resource):
         args = search_parser.parse_args()
         q = args['q'].lower()
         must_be_released = args['must_be_released'] if 'must_be_released' in args else False
-        publisher = args['publisher'] if 'publisher' in args else ''
+        publisher = args['publisher'] if 'publisher' in args else 0
         session = create_session()
         # movies = session.query(Movies).filter(Movies.title.ilike(f'%{args["q"].lower()}%')).all()
         movies = []
         for i in session.query(Movies).all():
             if (not must_be_released or i.user_released) and \
                     (q in i.title.lower()) and \
-                    (publisher == '' or i.publisher == publisher):
+                    (publisher == 0 or i.publisher == publisher):
                 movies.append(i)
         return jsonify({'movies': [item.to_dict(only=('id', 'title', 'cover')) for item in movies]})

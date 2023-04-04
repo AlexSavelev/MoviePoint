@@ -187,13 +187,19 @@ def watch(movie_id):
 def my():
     if check_user_is_not_authorized('/my'):
         return redirect('/login')
-    medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'q': '', 'must_be_released': True}).json()['movies']
+    medias = post(f'{SITE_PATH}/api/v1/movies/search', json={
+        'q': '', 'must_be_released': True, 'publisher': current_user.id}).json()['movies']
     medias = [
         {'title': i['title'],
-         'watch_ref': f'/watch/{i["id"]}',
+         'editor_ref': f'/my/edit/{i["id"]}',
          'cover_ref': make_image_path(i['id'], i['cover'])
          } for i in medias]
-    return render_template('search.html', title='Поиск', not_found=nf, medias=medias, q=query_text)
+    medias.append({
+        'title': 'Добавить',
+        'editor_ref': f'/my/new',
+        'cover_ref': '/static/img/'
+    })
+    return render_template('my.html', title='Мои фильмы/сериалы', medias=medias)
 
 
 if __name__ == '__main__':
