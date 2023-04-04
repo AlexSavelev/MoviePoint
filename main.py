@@ -187,15 +187,7 @@ def watch(movie_id):
 def my():
     if check_user_is_not_authorized('/my'):
         return redirect('/login')
-    query_text = request.args.get('q', default='', type=str)
-    nf = False
-    if query_text:
-        medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'q': query_text}).json()['movies']
-        if not medias:
-            nf = True
-            medias = get(f'{SITE_PATH}/api/v1/movies').json()['movies']
-    else:
-        medias = get(f'{SITE_PATH}/api/v1/movies').json()['movies']
+    medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'q': '', 'must_be_released': True}).json()['movies']
     medias = [
         {'title': i['title'],
          'watch_ref': f'/watch/{i["id"]}',
