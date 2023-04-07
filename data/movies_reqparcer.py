@@ -1,9 +1,9 @@
 from flask_restful import reqparse
 
 parser = reqparse.RequestParser()
-parser.add_argument('publisher', required=True, type=int)
-parser.add_argument('type', required=True)
-parser.add_argument('title', required=True)
+parser.add_argument('publisher', required=False, type=int)
+parser.add_argument('type', required=False)
+parser.add_argument('title', required=False)
 parser.add_argument('description', required=False)
 parser.add_argument('duration', required=False)
 parser.add_argument('genres', required=False)
@@ -11,6 +11,10 @@ parser.add_argument('country', required=False)
 parser.add_argument('director', required=False)
 parser.add_argument('age', required=False)
 parser.add_argument('world_release_date', required=False)
+parser.add_argument('user_released', required=False, type=bool)
+parser.add_argument('series', required=False)
+parser.add_argument('cover', required=False)
+parser.add_argument('images', required=False)
 
 search_parser = reqparse.RequestParser()
 search_parser.add_argument('q', required=False, type=str)

@@ -20,6 +20,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user
 from flask_login.utils import current_user
 
 from forms.user import LoginForm, RegisterForm
+from forms.my import MyNewForm
 
 app = Flask(__name__)
 api = Api(app)
@@ -124,13 +125,13 @@ def search():
     query_text = request.args.get('q', default='', type=str)
     nf = False
     if query_text:
-        medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'q': query_text,
-                                                                 'must_be_released': True}).json()['movies']
+        medias = get(f'{SITE_PATH}/api/v1/movies/search', json={'q': query_text,
+                                                                'must_be_released': True}).json()['movies']
         if not medias:
             nf = True
-            medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'must_be_released': True}).json()['movies']
+            medias = get(f'{SITE_PATH}/api/v1/movies/search', json={'must_be_released': True}).json()['movies']
     else:
-        medias = post(f'{SITE_PATH}/api/v1/movies/search', json={'must_be_released': True}).json()['movies']
+        medias = get(f'{SITE_PATH}/api/v1/movies/search', json={'must_be_released': True}).json()['movies']
     medias = [
         {'title': i['title'],
          'watch_ref': f'/watch/{i["id"]}',
@@ -187,7 +188,7 @@ def watch(movie_id):
 def my():
     if check_user_is_not_authorized('/my'):
         return redirect('/login')
-    medias = post(f'{SITE_PATH}/api/v1/movies/search', json={
+    medias = get(f'{SITE_PATH}/api/v1/movies/search', json={
         'must_be_released': False, 'publisher': current_user.id}).json()['movies']
     medias = [
         {'title': i['title'],
@@ -200,6 +201,24 @@ def my():
         'cover_ref': '/static/img/new_movie.png'
     })
     return render_template('my.html', title='Мои фильмы/сериалы', medias=medias, number_of_loads=len(medias) - 1)
+
+
+@app.route('/my/new', methods=['GET', 'POST'])
+def my_new():
+    if check_user_is_not_authorized('/my/new'):
+        return redirect('/login')
+    form = MyNewForm()
+    if form.validate_on_submit():
+        user_movie_titles = [i['title'] for i in get(f'{SITE_PATH}/api/v1/movies/search', json={
+            'must_be_released': False, 'publisher': current_user.id}).json()['movies']]
+        if form.title.data in user_movie_titles:
+            return render_template('my_new.html', title='Загрузить', form=form, message='Такое название у вас '
+                                                                                        'уже используется')
+        mid = post(f'{SITE_PATH}/api/v1/movies', json={'publisher': current_user.id,
+                                                       'type': form.type.data,
+                                                       'title': form.title.data}).json()['movie_id']
+        return redirect(f'/my/edit/{mid}')
+    return render_template('my_new.html', title='Загрузить', form=form)
 
 
 if __name__ == '__main__':

@@ -22,6 +22,14 @@ class MoviesResource(Resource):
         movie = session.query(Movies).get(movies_id)
         return jsonify({'movie': movie.to_dict()})
 
+    def put(self, movies_id):
+        abort_if_movie_not_found(movies_id)
+        args = {i: j for i, j in parser.parse_args().items() if j is not None}
+        session = create_session()
+        session.query(Movies).filter(Movies.id == movies_id).update(args)
+        session.commit()
+        return jsonify({'success': 'OK'})
+
     def delete(self, movies_id):
         abort_if_movie_not_found(movies_id)
         session = create_session()
@@ -44,16 +52,17 @@ class MoviesListResource(Resource):
         world_release_date = datetime.date.fromisoformat(args['world_release_date']) \
             if 'world_release_date' in args and args['world_release_date'] else None
         movie.publisher, movie.type, movie.title, movie.description, movie.duration, movie.genres, movie.country, \
-            movie.director, movie.age, movie.world_release_date = args['publisher'], args['type'], args['title'], \
-            args['description'], args['duration'], args['genres'], args['country'], args['director'], args['age'], \
-            world_release_date
+            movie.director, movie.age, movie.world_release_date, movie.user_released, movie.series, movie.cover, \
+            movie.images = args['publisher'], args['type'], args['title'], args['description'], args['duration'], \
+            args['genres'], args['country'], args['director'], args['age'], world_release_date, \
+            args['user_released'], args['series'], args['cover'], args['images']
         session.add(movie)
         session.commit()
-        return jsonify({'success': 'OK'})
+        return jsonify({'success': 'OK', 'movie_id': movie.id})
 
 
 class MoviesSearch(Resource):
-    def post(self):
+    def get(self):
         args = search_parser.parse_args()
         q = args['q'].lower() if args['q'] is not None else ''
         must_be_released = args['must_be_released'] if args['must_be_released'] is not None else False
