@@ -2,6 +2,7 @@ from flask import Flask
 from flask import render_template, redirect, send_from_directory, make_response, jsonify, request, session, abort
 from flask_restful import reqparse, abort, Api, Resource
 from data.db_session import global_init, create_session
+import base64
 
 from config import *
 from misc import *
@@ -40,18 +41,26 @@ def add_header(response):
 
 @app.errorhandler(404)
 def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
+    data = get('https://http.cat/404').content
+    img_data = base64.b64encode(data).decode()
+    return "<img src='data:image/png;base64," + img_data + "' style='height: 100%;'/>"
 
 
 @app.errorhandler(400)
 def bad_request(_):
-    return make_response(jsonify({'error': 'Bad Request'}), 400)
+    data = get('https://http.cat/400').content
+    img_data = base64.b64encode(data).decode()
+    return "<img src='data:image/png;base64," + img_data + "' style='height: 100%;'/>"
 
 
 @app.errorhandler(500)
 def server_error(_):
-    return make_response(jsonify(
-        {'error': "Internal server error. We'll be back as soon as the programmer buys new brains."}), 400)
+    data = get('https://http.cat/500').content
+    img_data = base64.b64encode(data).decode()
+    return "<img src='data:image/png;base64," + \
+           img_data + \
+           "' style='height: 100%;' alt='Internal server error. " \
+           "We will be back as soon as the programmer buys new brains.'/>"
 
 
 def check_user_is_not_authorized(page='/'):
