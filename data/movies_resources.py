@@ -49,13 +49,21 @@ class MoviesListResource(Resource):
         args = parser.parse_args()
         session = create_session()
         movie = Movies()
-        world_release_date = datetime.date.fromisoformat(args['world_release_date']) \
+
+        movie.publisher, movie.type, movie.title = args['publisher'], args['type'], args['title']
+        movie.description = args['description'] if args['description'] else ''
+        movie.duration = args['duration'] if args['duration'] else ''
+        movie.genres = args['genres'] if args['genres'] else ''
+        movie.country = args['country'] if args['country'] else ''
+        movie.director = args['director'] if args['director'] else ''
+        movie.age = args['age'] if args['age'] else ''
+        movie.world_release_date = datetime.date.fromisoformat(args['world_release_date']) \
             if 'world_release_date' in args and args['world_release_date'] else None
-        movie.publisher, movie.type, movie.title, movie.description, movie.duration, movie.genres, movie.country, \
-            movie.director, movie.age, movie.world_release_date, movie.user_released, movie.series, movie.cover, \
-            movie.images = args['publisher'], args['type'], args['title'], args['description'], args['duration'], \
-            args['genres'], args['country'], args['director'], args['age'], world_release_date, \
-            args['user_released'], args['series'], args['cover'], args['images']
+        movie.user_released = args['user_released'] if args['user_released'] else False
+        movie.series = args['series'] if args['series'] else ''
+        movie.cover = args['cover'] if args['cover'] else ''
+        movie.images = args['images'] if args['images'] else ''
+
         session.add(movie)
         session.commit()
         return jsonify({'success': 'OK', 'movie_id': movie.id})

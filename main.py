@@ -165,12 +165,12 @@ def stream_from_dir(movie_id, series_id, path, file_name):
 def watch(movie_id):
     if check_user_is_not_authorized('/search'):
         return redirect(f'/watch/{movie_id}')
-    db_sess = create_session()
-    movie = db_sess.query(Movies).get(movie_id)
-    if not movie:
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (not movie['movie']['user_released']):
         abort(404)
-    if movie.type == SERIES:
-        movie_series = json.loads(movie.series)
+    movie = movie['movie']
+    if movie['type'] == SERIES:
+        movie_series = json.loads(movie['series'])
         seasons = [
             {'name': f'Сезон {season_number}',
              'series': [
@@ -186,11 +186,12 @@ def watch(movie_id):
     else:
         seasons = []
         src = build_master_src(movie_id, '0')
-    images = [make_image_path(movie_id, i) for i in movie.images.split(',')]
+    images = [make_image_path(movie_id, i) for i in movie['images'].split(',')]
+    movie_title = movie['title']
     additional_css_links = ['/static/css/video-js.css', '/static/css/videojs-http-source-selector.css']
-    return render_template('watch.html', title=f'Смотреть "{movie.title}"', movie_title=movie.title, movie_id=movie_id,
-                           publisher=movie.user.username, additional_css_links=additional_css_links, seasons=seasons,
-                           src=src, images=images)
+    return render_template('watch.html', title=f'Смотреть "{movie_title}"', movie_title=movie_title, movie_id=movie_id,
+                           publisher=movie['user']['username'], additional_css_links=additional_css_links,
+                           seasons=seasons, src=src, images=images)
 
 
 @app.route('/my')
@@ -230,6 +231,39 @@ def my_new():
     return render_template('my_new.html', title='Загрузить', form=form)
 
 
+@app.route('/my/edit/<int:movie_id>')
+def my_edit(movie_id):
+    if check_user_is_not_authorized(f'/my/edit/{movie_id}'):
+        return redirect('/login')
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id):
+        abort(404)
+    movie = movie['movie']
+    if movie['type'] == SERIES:
+        movie_series = json.loads(movie['series'])
+        seasons = [
+            {'name': f'Сезон {season_number}',
+             'series': [
+                 {'name': f'Серия {series_number}',
+                  'ref': build_master_src(movie_id, series_id)
+                  } for series_number, series_id in series_dict.items()
+             ]
+             } for season_number, series_dict in movie_series.items()]
+        if f'last_movie_series_{movie_id}' in request.cookies:
+            src = request.cookies[f'last_movie_series_{movie_id}']
+        else:
+            src = seasons[0]['series'][0]['ref']
+    else:
+        seasons = []
+        src = build_master_src(movie_id, '0')
+    images = [make_image_path(movie_id, i) for i in movie['images'].split(',')]
+    movie_title = movie['title']
+    additional_css_links = ['/static/css/video-js.css', '/static/css/videojs-http-source-selector.css']
+    return render_template('watch.html', title=f'Смотреть "{movie_title}"', movie_title=movie_title, movie_id=movie_id,
+                           publisher=movie['user']['username'], additional_css_links=additional_css_links,
+                           seasons=seasons, src=src, images=images)
+
+
 if __name__ == '__main__':
     global_init('db/movie_point.db')
     api.add_resource(users_resources.UsersListResource, '/api/v1/users')
@@ -243,4 +277,4 @@ if __name__ == '__main__':
     api.add_resource(reviews_resources.ReviewsResource, '/api/v1/reviews/<int:rev_id>')
     api.add_resource(reviews_resources.ReviewsSearch, '/api/v1/reviews/search')
 
-    app.run(port=PORT, host=HOST)
+    app.run(port=PORT, host=HOST, debug=True)
