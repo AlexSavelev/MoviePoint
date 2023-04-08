@@ -1,6 +1,6 @@
 from flask import Flask
-from flask import render_template, redirect, send_from_directory, make_response, jsonify, request, session, abort
-from flask_restful import reqparse, abort, Api, Resource
+from flask import render_template, redirect, send_from_directory, request, session, abort
+from flask_restful import abort, Api
 from data.db_session import global_init, create_session
 import base64
 
@@ -40,7 +40,7 @@ def add_header(response):
 
 
 @app.errorhandler(404)
-def not_found(error):
+def not_found(_):
     data = get('https://http.cat/404').content
     img_data = base64.b64encode(data).decode()
     return "<img src='data:image/png;base64," + img_data + "' style='height: 100%;'/>"
