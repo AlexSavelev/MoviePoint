@@ -63,13 +63,13 @@
             let qualityLevels = player.qualityLevels();
 
             qualityLevels.on('addqualitylevel', function(event) {
-            let qualityLevel = event.qualityLevel;
+                let qualityLevel = event.qualityLevel;
 
-            if (qualityLevel.height >= 720) {
-                qualityLevel.enabled = true;
-            } else {
-                qualityLevel.enabled = false;
-            }
+                if (qualityLevel.height >= 800) {
+                    qualityLevel.enabled = true;
+                } else {
+                    qualityLevel.enabled = false;
+                }
             });
 
             // player.play(); - disabled "autoplay"
