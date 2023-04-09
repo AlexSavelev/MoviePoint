@@ -29,25 +29,25 @@
 
 ```mermaid
 flowchart TD
-    A[Movie X.mp4] -->|Load to MoviePoint| B(Movie X.m3u8)
+    A[Movie X.mp4] -->|Load to MoviePoint| B(master.m3u8)
     B --> C{stream_0.m3u8}
     B --> D{stream_1.m3u8}
     B --> E{stream_2.m3u8}
     B --> F{stream_3.m3u8}
 
-    C --> |640x360| G(data000.ts)
-    G --> H(data001.ts)
+    C --> |1920x1080| G(data0000.ts)
+    G --> H(data0001.ts)
     H --> I(...)
 
-    D --> |842x480| J(data000.ts)
-    J --> K(data001.ts)
+    D --> |1280x720| J(data0000.ts)
+    J --> K(data0001.ts)
     K --> L(...)
 
-    E --> |1280x720| M(data000.ts)
-    M --> N(data001.ts)
+    E --> |842x480| M(data0000.ts)
+    M --> N(data0001.ts)
     N --> O(...)
 
-    F --> |1920x1080| P(data000.ts)
-    P --> Q(data001.ts)
+    F --> |640x360| P(data0000.ts)
+    P --> Q(data0001.ts)
     Q --> R(...)
 ```
