@@ -1,5 +1,6 @@
-# HOST = '127.0.0.1'
-HOST = '0.0.0.0'
+HOST = '127.0.0.1'
+SETUP_HOST = '0.0.0.0'
+
 PORT = 5000
 SITE_PATH = f'http://{HOST}:{PORT}'
 

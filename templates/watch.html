@@ -8,6 +8,28 @@
 {% endblock %}
 
 {% block main %}
+    {% if is_editor %}
+        <div class="movie-edit-block">
+            <h2 class="page-mid-title">Редактор</h2>
+            <div class="movie-edit-buttons-block">
+                {% if seasons %}
+                    <input type="button" class="btn btn-primary" onclick="location.href='/edit/{{movie_id}}/data';" value="Серии" />
+                {% else %}
+                    <input type="button" class="btn btn-primary" onclick="location.href='/edit/{{movie_id}}/data/0';" value="Фильм" />
+                {% endif %}
+
+                <input type="button" class="btn btn-warning" onclick="location.href='/edit/{{movie_id}}/images';" value="Картинки" />
+                <input type="button" class="btn btn-info" onclick="location.href='/edit/{{movie_id}}/info';" value="Информация и управление" />
+
+                {% if published %}
+                    <input type="button" class="btn btn-danger" onclick="location.href='/edit/{{movie_id}}/private';" value="Приватизировать" />
+                {% else %}
+                    <input type="button" class="btn btn-success" onclick="location.href='/edit/{{movie_id}}/publish';" value="Опубликовать" />
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
     <div class="movie-video-block">
 
         {% if seasons %}
@@ -77,6 +99,7 @@
 
     </div>
     <div class="movie-gallery-block">
+        {% if images %}
         <div id="carouselIndicators" class="carousel slide" data-ride="carousel">
             <ol class="carousel-indicators">
                 {% for i in images %}
@@ -113,6 +136,10 @@
         <script src="/static/scripts/jquery-3.2.1.slim.min.js"></script>
         <script src="/static/scripts/popper.min.js"></script>
         <script src="/static/scripts/bootstrap.min.js"></script>
+
+        {% else %}
+        <div class="alert alert-info search-alert" role="alert"><p>Фотографии отсутствуют.</p></div>
+        {% endif %}
     </div>
     <div class="movie-info-block">
         <p>Тут должна быть инфа о фильме/сериале</p>

@@ -416,6 +416,25 @@ ul.footer-menu li {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23200e35' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath d='M2.75 0l-1.5 1.5L3.75 4l-2.5 2.5L2.75 8l4-4-4-4z'/%3e%3c/svg%3e")
 }
 
+.movie-edit-block {
+    background-color: hsl(0,0%,90%);
+    padding-top: 10px;
+    padding-bottom: 30px;
+    padding-left: 100px;
+    padding-right: 100px;
+}
+
+.movie-edit-buttons-block {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.movie-edit-buttons-block input {
+    width: 20%;
+}
+
 .movie-info-block {
     background-color: hsl(0,0%,90%);
     padding: 50px;
