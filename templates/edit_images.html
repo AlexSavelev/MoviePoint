@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block header2 %}
+<div class="header2-mini">
+    <h2 class="page-big-title-left">{{movie_title}}. Картинки</h2>
+    <p class="page-big-title-left-desc">Добавлено: {{publisher}}</p>
+</div>
+{% endblock %}
+
+{% block main %}
+    <div class="edit-images">
+        <div class="edit-images-cover-block">
+            <img src="{{cover_ref}}">
+            <input type="button" class="btn btn-primary" onclick="location.href='/edit/{{movie_id}}/images/cover';" value="Загрузить обложку" />
+        </div>
+        <div class="edit-images-images-block">
+
+        </div>
+    </div>
+{% endblock %}

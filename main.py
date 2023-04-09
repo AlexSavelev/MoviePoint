@@ -10,6 +10,7 @@ from requests import get, post, delete, put
 import json
 
 from data import users_resources, genres_resources, movies_resources, reviews_resources
+from data import movie_file_system
 
 from data.users import User
 
@@ -17,7 +18,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user
 from flask_login.utils import current_user
 
 from forms.user import LoginForm, RegisterForm
-from forms.my import MyNewForm
+from forms.edit import MyNewForm, EditCoverForm
 
 app = Flask(__name__)
 api = Api(app)
@@ -229,6 +230,9 @@ def my_new():
         mid = post(f'{SITE_PATH}/api/v1/movies', json={'publisher': current_user.id,
                                                        'type': form.type.data,
                                                        'title': form.title.data}).json()['movie_id']
+        movie_file_system.init(mid)
+        if form.type.data == FULL_LENGTH:
+            movie_file_system.init_series(mid, '0')
         return redirect(f'/watch/{mid}?edit=true')
     return render_template('my_new.html', title='Загрузить', form=form)
 
@@ -243,10 +247,43 @@ def edit_data_series(movie_id: int, series: str):
     pass
 
 
-@app.route('/edit/<int:movie_id>/images')
+@app.route('/edit/<int:movie_id>/images', methods=['GET', 'POST'])
 def edit_images(movie_id: int):
-    # FILE SYSTEM!!!!
-    pass
+    if check_user_is_not_authorized(f'/edit/{movie_id}/images'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id):
+        abort(404)
+    movie = movie['movie']
+
+    cover_ref = make_image_path(movie_id, movie['cover']) if movie['cover'] else '/static/img/no_cover.png'
+    return render_template('edit_images.html', title='Картинки', cover_ref=cover_ref,
+                           publisher=movie['user']['username'], movie_title=movie['title'], movie_id=movie_id)
+
+
+@app.route('/edit/<int:movie_id>/images/cover', methods=['GET', 'POST'])
+def edit_images_cover(movie_id: int):
+    if check_user_is_not_authorized(f'/edit/{movie_id}/images/cover'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id):
+        abort(404)
+    movie = movie['movie']
+
+    cover_form = EditCoverForm()
+    if cover_form.validate_on_submit():
+        if movie['cover']:
+            movie_file_system.remove_image(movie_id, movie['cover'])
+        data = cover_form.content.data
+        filename = generate_file_name() + '.' + data.filename.split('.')[-1]
+        movie_file_system.save_image(movie_id, filename, data)
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'cover': filename})
+        return redirect(f'/edit/{movie_id}/images')
+
+    return render_template('edit_images_load.html', title='Загрузка', publisher=movie['user']['username'],
+                           movie_title=movie['title'], form=cover_form, movie_id=movie_id)
 
 
 @app.route('/edit/<int:movie_id>/info')

@@ -3,7 +3,7 @@ from config import *
 
 
 def make_image_path(movie_id, image):
-    return f'{MOVIE_PATH}/{movie_id}/{IMG_FOLDER_NAME}/{image}'
+    return f'{MOVIE_PATH}/{movie_id}/img/{image}'
 
 
 def build_master_src(movie_id, series_id):

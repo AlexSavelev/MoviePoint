@@ -435,6 +435,41 @@ ul.footer-menu li {
     width: 20%;
 }
 
+.edit-images {
+    padding-left: 30px;
+    padding-right: 30px;
+    display: flex;
+    flex-direction: row;
+    background-color: hsl(0,0%,90%);
+}
+
+.edit-images-load-block {
+    padding: 20px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    margin: auto;
+    width: 30%;
+    background-color: hsl(0,0%,90%);
+}
+
+.edit-images-load-block input {
+    width: 80%;
+}
+
+.edit-images-cover-block {
+    margin: 50px;
+    width: 300px;
+    max-width: 330px;
+    padding: 20px;
+    border: 2px solid #000000;
+}
+
+.edit-images-cover-block img {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 20px;
+}
+
 .movie-info-block {
     background-color: hsl(0,0%,90%);
     padding: 50px;
