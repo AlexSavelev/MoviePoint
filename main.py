@@ -237,6 +237,41 @@ def my_new():
     return render_template('my_new.html', title='Загрузить', form=form)
 
 
+@app.route('/edit/<int:movie_id>/data')
+def edit_data(movie_id: int):
+    pass
+
+
+@app.route('/edit/<int:movie_id>/data/<string:series>')
+def edit_data_series(movie_id: int, series: str):
+    pass
+
+
+@app.route('/edit/<int:movie_id>/images')
+def edit_images(movie_id: int):
+    pass
+
+
+@app.route('/edit/<int:movie_id>/info')
+def edit_info(movie_id: int):
+    pass
+
+
+@app.route('/edit/<int:movie_id>/remove')
+def edit_remove(movie_id: int):
+    pass
+
+
+@app.route('/edit/<int:movie_id>/private')
+def edit_private(movie_id: int):
+    pass
+
+
+@app.route('/edit/<int:movie_id>/publish')
+def edit_publish(movie_id: int):
+    pass
+
+
 if __name__ == '__main__':
     global_init('db/movie_point.db')
     api.add_resource(users_resources.UsersListResource, '/api/v1/users')
