@@ -4,7 +4,6 @@ from flask_restful import abort, Api
 from data.db_session import global_init, create_session
 import base64
 
-from config import *
 from misc import *
 
 from requests import get, post, delete, put
@@ -13,9 +12,6 @@ import json
 from data import users_resources, genres_resources, movies_resources, reviews_resources
 
 from data.users import User
-from data.genres import Genres
-from data.movies import Movies
-from data.reviews import Reviews
 
 from flask_login import LoginManager, login_user, login_required, logout_user
 from flask_login.utils import current_user
@@ -249,6 +245,7 @@ def edit_data_series(movie_id: int, series: str):
 
 @app.route('/edit/<int:movie_id>/images')
 def edit_images(movie_id: int):
+    # FILE SYSTEM!!!!
     pass
 
 
