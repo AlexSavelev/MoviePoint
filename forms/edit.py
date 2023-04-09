@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
-from wtforms import StringField, SelectField, SubmitField, IntegerField, FileField
+from wtforms import StringField, SelectField, SubmitField, IntegerField, FileField, MultipleFileField
 from wtforms.validators import DataRequired
 
 from config import FULL_LENGTH, SERIES
@@ -16,4 +16,9 @@ class MyNewForm(FlaskForm):
 
 class EditCoverForm(FlaskForm):
     content = FileField('Новая обложка', validators=[FileRequired(), FileAllowed(IMAGES, 'Images only!')])
+    submit = SubmitField('Установить')
+
+
+class EditImagesForm(FlaskForm):
+    content = MultipleFileField('Картинки', validators=[FileAllowed(IMAGES, 'Images only!')])
     submit = SubmitField('Установить')

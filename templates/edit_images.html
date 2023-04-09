@@ -8,13 +8,24 @@
 {% endblock %}
 
 {% block main %}
+    <div class="edit-images-back">
+        <input type="button" class="btn btn-primary" onclick="location.href='/watch/{{movie_id}}?edit=true';" value="<< Вернуться" />
+    </div>
     <div class="edit-images">
         <div class="edit-images-cover-block">
             <img src="{{cover_ref}}">
             <input type="button" class="btn btn-primary" onclick="location.href='/edit/{{movie_id}}/images/cover';" value="Загрузить обложку" />
         </div>
-        <div class="edit-images-images-block">
-
+        <div class="edit-images-block">
+            <div class="edit-images-images-block">
+                {% for img in image_refs %}
+                <div class="edit-images-image" id="rt-image-{{loop.index0}}">
+                    <img src="{{img.abs}}">
+                    <input type="button" class="btn btn-danger" onclick="window.open('/edit/{{movie_id}}/images/remove?i={{img.rel}}', '_blank');document.getElementById('rt-image-{{loop.index0}}').remove();" value="Удалить" />
+                </div>
+                {% endfor %}
+            </div>
+            <input type="button" class="btn btn-primary" onclick="location.href='/edit/{{movie_id}}/images/load';" value="Загрузить картинки" />
         </div>
     </div>
 {% endblock %}
