@@ -10,3 +10,6 @@ MOVIE_PATH = '/static/movies'
 # Movie types:
 FULL_LENGTH = 'FL'
 SERIES = 'S'
+
+# Languages
+LANG_MAP = {'ru': 'Russian', 'en': 'English'}

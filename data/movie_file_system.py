@@ -51,7 +51,26 @@ def replace_ts_dirs(file_path: str, r_from: str, r_to: str):
         f.write(data)
 
 
-def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, bitrate: int, content):  # aac/mp3
+def add_media_param(master_path: str, param):
+    with open(master_path, 'r') as f:
+        data = f.readlines()
+    index = data.index('#EXT-X-VERSION:3') + 1
+    data.insert(index, param)
+    with open(master_path, 'w') as f:
+        f.writelines(data)
+
+
+def add_param_to_streams(master_path: str, param: str):
+    with open(master_path, 'r') as f:
+        data = f.readlines()
+    for index in [i for i, line in enumerate(data) if line.startswith('#EXT-X-STREAM-INF')]:
+        data[index] += param
+    with open(master_path, 'w') as f:
+        f.writelines(data)
+
+
+def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, bitrate: int,
+                       content, add_to_streams=False):  # aac/mp3
     os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/audio_{lang}')
     base_audio_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/{lang}.{ext}'
 
@@ -75,10 +94,18 @@ def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, bitra
 
     replace_ts_dirs(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/a_{lang}.m3u8', 'data', f'audio_{lang}/data')
 
+    master_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/master.m3u8'
+    if add_to_streams:
+        add_param_to_streams(master_path, f',AUDIO="stereo"')
+    param = f'#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="stereo",LANGUAGE="{lang}",NAME="{get_lang_full_name(lang)}",' \
+            f'DEFAULT={"YES" if lang == "ru" else "NO"},AUTOSELECT=YES,URI="a_{lang}.m3u8"'
+    add_media_param(master_path, param)
+
     return True
 
 
-def save_subtitle_channel(movie_id: int, series_id: str, lang: str, ext: str, content):  # srt/vtt
+def save_subtitle_channel(movie_id: int, series_id: str, lang: str, ext: str,
+                          content, add_to_streams=False):  # srt/vtt
     base_sub_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/subs/{lang}.vtt'
 
     if ext == 'vtt':
@@ -100,6 +127,13 @@ def save_subtitle_channel(movie_id: int, series_id: str, lang: str, ext: str, co
 
     with open(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/s_{lang}.m3u8', 'w') as f:
         f.write(m3u8_data)
+
+    master_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/master.m3u8'
+    if add_to_streams:
+        add_param_to_streams(master_path, f',SUBTITLES="subs"')
+    param = f'#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{get_lang_full_name(lang)}",' \
+            f'DEFAULT={"YES" if lang == "ru" else "NO"},AUTOSELECT=YES,FORCED=NO,LANGUAGE="{lang}",URI="s_{lang}.m3u8"'
+    add_media_param(master_path, param)
 
     return True
 

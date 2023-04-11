@@ -15,3 +15,9 @@ def generate_file_name(length=25):
     LETTERS = 'qwertyuiopasdfghjklzxcvbnm'
     SYMBOLS = LETTERS + LETTERS.upper() + DIGITS
     return ''.join([random.choice(SYMBOLS) for i in range(length)])
+
+
+def get_lang_full_name(lang: str):
+    if lang in LANG_MAP:
+        return LANG_MAP[lang]
+    return 'Undefined'
