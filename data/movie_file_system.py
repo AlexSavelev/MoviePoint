@@ -1,6 +1,7 @@
 import os
 import subprocess
 import shutil
+import webvtt
 from misc import *
 
 
@@ -28,6 +29,7 @@ def remove(movie_id: int):
 
 def init_series(movie_id: int, series_id: str):
     os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}')
+    os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/subs')
 
 
 def remove_series(movie_id: int, series_id: str):
@@ -72,6 +74,32 @@ def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, bitra
         return False
 
     replace_ts_dirs(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/a_{lang}.m3u8', 'data', f'audio_{lang}/data')
+
+    return True
+
+
+def save_subtitle_channel(movie_id: int, series_id: str, lang: str, ext: str, content):  # srt/vtt
+    base_sub_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/subs/{lang}.vtt'
+
+    if ext == 'vtt':
+        with open(base_sub_path, 'w') as f:
+            f.write(content)
+    elif ext == 'srt':
+        t_sub_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/subs/{lang}.srt'
+        with open(t_sub_path, 'w') as f:
+            f.write(content)
+        t = webvtt.from_srt(t_sub_path)
+        t.save(base_sub_path)
+        os.remove(t_sub_path)
+    else:
+        return False
+
+    length = webvtt.read(base_sub_path).total_length
+    m3u8_data = f"#EXTM3U\n#EXT-X-TARGETDURATION:{length}\n#EXT-X-VERSION:3\n#EXT-X-MEDIA-SEQUENCE:1\n" \
+                f"#EXT-X-PLAYLIST-TYPE:VOD\n#EXTINF:{length}.0,\nsubs/{lang}.vtt\n#EXT-X-ENDLIST"
+
+    with open(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/s_{lang}.m3u8', 'w') as f:
+        f.write(m3u8_data)
 
     return True
 
