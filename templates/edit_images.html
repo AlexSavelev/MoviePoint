@@ -21,7 +21,7 @@
                 {% for img in image_refs %}
                 <div class="edit-images-image" id="rt-image-{{loop.index0}}">
                     <img src="{{img.abs}}">
-                    <input type="button" class="btn btn-danger" onclick="window.open('/edit/{{movie_id}}/images/remove?i={{img.rel}}', '_blank');document.getElementById('rt-image-{{loop.index0}}').remove();" value="Удалить" />
+                    <input type="button" class="btn btn-danger" onclick="if(confirm('Вы уверены, что хотите сделать это?') == true){window.open('/edit/{{movie_id}}/images/remove?i={{img.rel}}', '_blank');document.getElementById('rt-image-{{loop.index0}}').remove();}" value="Удалить" />
                 </div>
                 {% endfor %}
             </div>
