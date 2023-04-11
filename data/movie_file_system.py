@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shutil
 from misc import *
 
 
@@ -21,8 +22,16 @@ def init(movie_id: int):
     os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/img')
 
 
+def remove(movie_id: int):
+    shutil.rmtree(f'{MEDIA_DATA_PATH}/{movie_id}')
+
+
 def init_series(movie_id: int, series_id: str):
     os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}')
+
+
+def remove_series(movie_id: int, series_id: str):
+    shutil.rmtree(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}')
 
 
 def save_image(movie_id: int, filename: str, content):
@@ -31,6 +40,13 @@ def save_image(movie_id: int, filename: str, content):
 
 def remove_image(movie_id: int, filename: str):
     os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/img/{filename}')
+
+
+def replace_ts_dirs(file_path: str, r_from: str, r_to: str):
+    with open(file_path, 'r') as f:
+        data = f.read().replace(r_from, r_to)
+    with open(file_path, 'w') as f:
+        f.write(data)
 
 
 def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, bitrate: int, content):  # aac/mp3
@@ -48,10 +64,16 @@ def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, bitra
 
     if result != 0:
         os.remove(base_audio_path)
-        os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/audio_{lang}')
-        os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/a_{lang}.m3u8')
+        shutil.rmtree(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/audio_{lang}')
+        try:
+            os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/a_{lang}.m3u8')
+        except OSError:
+            pass
+        return False
 
-    return result == 0
+    replace_ts_dirs(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/a_{lang}.m3u8', 'data', f'audio_{lang}/data')
+
+    return True
 
 
 def save_video(movie_id: int, series_id: str, ext: str, max_bitrate: int, max_height: int, content):  # h264/mp4
@@ -77,9 +99,20 @@ def save_video(movie_id: int, series_id: str, ext: str, max_bitrate: int, max_he
 
     if result != 0:
         os.remove(base_video_path)
-        os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/master.m3u8')
+        try:
+            os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/master.m3u8')
+        except OSError:
+            pass
         for stream in [0, 1, 2, 3]:
-            os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}')
-            os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}.m3u8')
+            shutil.rmtree(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}')
+            try:
+                os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}.m3u8')
+            except OSError:
+                pass
+        return False
 
-    return result == 0
+    for stream in [0, 1, 2, 3]:
+        replace_ts_dirs(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}.m3u8',
+                        'data', f'stream_{stream}/data')
+
+    return True
