@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block header2 %}
+<div class="header2-mini">
+    <h2 class="page-big-title-left">{{movie_title}}</h2>
+    <p class="page-big-title-left-desc">Добавлено: {{publisher}}</p>
+</div>
+{% endblock %}
+
+{% block main %}
+    {% if is_editor %}
+        <div class="movie-edit-block">
+            <h2 class="page-mid-title">Редактор</h2>
+            <div class="movie-edit-buttons-block">
+                {% if seasons %}
+                    <input type="button" class="btn btn-primary" onclick="location.href='/edit/{{movie_id}}/data';" value="Серии" />
+                {% else %}
+                    <input type="button" class="btn btn-primary" onclick="location.href='/edit/{{movie_id}}/data/0';" value="Фильм" />
+                {% endif %}
+
+                <input type="button" class="btn btn-warning" onclick="location.href='/edit/{{movie_id}}/images';" value="Картинки" />
+                <input type="button" class="btn btn-info" onclick="location.href='/edit/{{movie_id}}/info';" value="Информация и управление" />
+
+                {% if published %}
+                    <input type="button" class="btn btn-danger" onclick="location.href='/edit/{{movie_id}}/private';" value="Приватизировать" />
+                {% else %}
+                    <input type="button" class="btn btn-success" onclick="location.href='/edit/{{movie_id}}/publish';" value="Опубликовать" />
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="movie-video-block">
+
+        {% if seasons %}
+        <script>
+        function change_series() {
+            series = document.getElementById("series_id").value;
+
+            const d = new Date();
+            d.setTime(d.getTime() + (365*24*60*60*1000));
+            let expires = "expires="+ d.toUTCString();
+            document.cookie = "last_movie_series_{{movie_id}}=" + series + ";" + expires + ";path=/";
+
+            player.src({ type: 'application/x-mpegURL', src: series });
+        }
+        </script>
+        <label for="series_id">Выберите серию:</label>
+        <select onchange="change_series()" id="series_id">
+            {% for season in seasons %}
+                <optgroup label="{{season.name}}">
+                    {% for s in season.series %}
+                        {% if s.ref == src %}
+                            <option value="{{s.ref}}" selected>{{s.name}}</option>
+                        {% else %}
+                            <option value="{{s.ref}}">{{s.name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </optgroup>
+            {% endfor %}
+        </select>
+        {% endif %}
+
+        <video-js id=vid1 width=1280 height=720 class="vjs-default-skin video-js vjs-controls-enabled vjs-workinghover
+        vjs-v7 vjs_video_3-dimensions vjs-http-source-selector vjs-has-started vjs-paused vjs-user-inactive" controls>
+            <source src="{{src}}" type="application/x-mpegURL" id="vid1_src">
+        </video-js>
+
+        <script src="/static/scripts/video.js"></script>
+        <script src="/static/scripts/videojs-http-streaming.js"></script>
+        <script src="/static/scripts/videojs-http-source-selector.js"></script>
+        <script src="/static/scripts/videojs-contrib-hls.js"></script>
+        <script src="/static/scripts/videojs-contrib-quality-levels.js"></script>
+        <script>
+            var options = {
+                plugins: {
+                    httpSourceSelector: {
+                        default: 'auto'
+                    }
+               }
+            };
+
+            var player = videojs('vid1', options);
+            player.httpSourceSelector();
+            let qualityLevels = player.qualityLevels();
+
+            qualityLevels.on('addqualitylevel', function(event) {
+                let qualityLevel = event.qualityLevel;
+
+                if (qualityLevel.height >= 800) {
+                    qualityLevel.enabled = true;
+                } else {
+                    qualityLevel.enabled = false;
+                }
+            });
+
+            // player.play(); - disabled "autoplay"
+        </script>
+
+    </div>
+    <div class="movie-gallery-block">
+        {% if images %}
+        <div id="carouselIndicators" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+                {% for i in images %}
+                    {% if loop.first %}
+                        <li data-target="#carouselIndicators" data-slide-to="{{loop.index0}}" class="active"></li>
+                    {% else %}
+                        <li data-target="#carouselIndicators" data-slide-to="{{loop.index0}}"></li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+            <div class="carousel-inner">
+                {% for i in images %}
+                    {% if loop.first %}
+                        <div class="carousel-item active images-carousel-item-block">
+                            <img class="" src="{{i}}">
+                        </div>
+                    {% else %}
+                        <div class="carousel-item images-carousel-item-block">
+                            <img class="" src="{{i}}">
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <a class="carousel-control-prev" href="#carouselIndicators" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselIndicators" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+
+        <script src="/static/scripts/jquery-3.2.1.slim.min.js"></script>
+        <script src="/static/scripts/popper.min.js"></script>
+        <script src="/static/scripts/bootstrap.min.js"></script>
+
+        {% else %}
+        <div class="alert alert-info search-alert" role="alert"><p>Фотографии отсутствуют.</p></div>
+        {% endif %}
+    </div>
+    <div class="movie-info-block">
+        {% for i in range(lengh) %}
+            {% if description[i] != '' %}
+                <p>{{ strings[i] }} {{ description[i] }}</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endblock %}
