@@ -197,15 +197,14 @@ def watch(movie_id):
     images = [make_image_path(movie_id, i) for i in movie['images'].split(',') if i]
     movie_title = movie['title']
     additional_css_links = ['/static/css/video-js.css', '/static/css/videojs-http-source-selector.css']
-    description = [movie['duration'], movie['world_release_date'], movie['director'], movie['country'],
-                   movie['genres'], movie['age'], number_of_episodes, movie['description']]
-    strings = ['Продолжительность: ', 'Дата выхода: ', 'Режисёр: ', 'Страна: ', 'Жанры: ',
-               'Возрастной рейтинг: ', 'Количество серий: ', 'Описание: ']
+    description = [('Продолжительность', movie['duration'], False), ('Дата выхода', movie['world_release_date'], False),
+                   ('Режисёр', movie['director'], True), ('Страна', movie['country'], False),
+                   ('Жанры', movie['genres'], True), ('Возрастной рейтинг', movie['age'], True),
+                   ('Количество серий', number_of_episodes, True), ('Описание', movie['description'], True)]
     mounth = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября',
              'декабря']
-    description[1] = description[1].split('-')[2] + ' ' + mounth[int(description[1].split('-')[1]) - 1] + ' ' \
-                     + description[1].split('-')[0]
-    description[5] = description[5] + '+'
+    '''description[1][1] = description[1][1].split('-')[2] + ' ' + mounth[int(description[1][1].split('-')[1]) - 1] + ' ' \
+                    + description[1][1].split('-')[0]'''
     lengh = len(description)
     '''lis = description[4].split(',')
     description[4] = ''
@@ -216,7 +215,7 @@ def watch(movie_id):
     return render_template('watch.html', title=f'Смотреть "{movie_title}"', movie_title=movie_title, movie_id=movie_id,
                            publisher=movie['user']['username'], additional_css_links=additional_css_links,
                            seasons=seasons, src=src, images=images, is_editor=is_editor, published=published,
-                           description=list(description), strings=strings, lengh=lengh)
+                           description=list(description), lengh=lengh)
 
 
 @app.route('/my')

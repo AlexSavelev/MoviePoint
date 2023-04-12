@@ -143,8 +143,16 @@
     </div>
     <div class="movie-info-block">
         {% for i in range(lengh) %}
-            {% if description[i] != '' %}
-                <p>{{ strings[i] }} {{ description[i] }}</p>
+            {% if description[i][2] == True %}
+                {% if description[i][1] != '' %}
+                    <p>{{ description[i][0] }}: {{ description[i][1] }}</p>
+                {% else %}
+                    <p>{{ description[i][0] }}: Отсутствует</p>
+                {% endif %}
+            {% else %}
+                {% if description[i][1] != '' %}
+                    <p>{{ description[i][0] }}: {{ description[i][1] }}</p>
+                {% endif %}
             {% endif %}
         {% endfor %}
     </div>
