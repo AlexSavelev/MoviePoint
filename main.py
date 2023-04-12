@@ -326,7 +326,7 @@ def edit_images_load(movie_id: int):
             filename = generate_file_name() + '.' + i.filename.split('.')[-1]
             movie_file_system.save_image(movie_id, filename, i)
             image_lst.append(filename)
-        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'images': ' '.join(image_lst)})
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'images': ','.join(image_lst)})
         return redirect(f'/edit/{movie_id}/images')
 
     return render_template('edit_images_load.html', title='Загрузка', publisher=movie['user']['username'],
