@@ -172,7 +172,9 @@ def watch(movie_id):
     if (not published) and (not is_editor):
         abort(404)
 
+    number_of_episodes = ''
     if movie['type'] == SERIES:
+        number_of_episodes = '0'
         movie_series = json.loads(movie['series'])
         seasons = [
             {'name': f'Сезон {season_number}',
@@ -182,6 +184,9 @@ def watch(movie_id):
                   } for series_number, series_id in series_dict.items()
              ]
              } for season_number, series_dict in movie_series.items()]
+        for season_number, series_dict in movie_series.items():
+            for i in series_dict.items():
+                number_of_episodes = str(int(number_of_episodes) + 1)
         if f'last_movie_series_{movie_id}' in request.cookies:
             src = request.cookies[f'last_movie_series_{movie_id}']
         else:
@@ -193,7 +198,7 @@ def watch(movie_id):
     movie_title = movie['title']
     additional_css_links = ['/static/css/video-js.css', '/static/css/videojs-http-source-selector.css']
     description = [movie['duration'], movie['world_release_date'], movie['director'], movie['country'],
-                   movie['genres'], movie['age'], movie['series'], movie['description']]
+                   movie['genres'], movie['age'], number_of_episodes, movie['description']]
     strings = ['Продолжительность: ', 'Дата выхода: ', 'Режисёр: ', 'Страна: ', 'Жанры: ',
                'Возрастной рейтинг: ', 'Количество серий: ', 'Описание: ']
     mounth = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября',
@@ -202,7 +207,6 @@ def watch(movie_id):
                      + description[1].split('-')[0]
     description[5] = description[5] + '+'
     lengh = len(description)
-    print(description[6])
     '''lis = description[4].split(',')
     description[4] = ''
     print(lis)
