@@ -13,3 +13,7 @@ SERIES = 'S'
 
 # Languages
 LANG_MAP = {'ru': 'Russian', 'en': 'English'}
+
+
+with open('admins.txt', 'r') as f:
+    ADMINS = [int(i.rstrip('\n')) for i in f.readlines() if i]

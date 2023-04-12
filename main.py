@@ -167,7 +167,7 @@ def watch(movie_id):
     if 'movie' not in movie:
         abort(404)
     movie = movie['movie']
-    is_editor = (request.args.get('edit', default='', type=str) == 'true' and (movie['publisher'] == current_user.id))
+    is_editor = (movie['publisher'] == current_user.id) or is_admin(current_user.id)
     published = movie['user_released']
     if (not published) and (not is_editor):
         abort(404)
@@ -227,7 +227,7 @@ def my():
         'must_be_released': False, 'publisher': current_user.id}).json()['movies']
     medias = [
         {'title': i['title'],
-         'editor_ref': f'/watch/{i["id"]}?edit=true',
+         'editor_ref': f'/watch/{i["id"]}',
          'cover_ref': make_image_path(i['id'], i['cover']) if i['cover'] else '/static/img/no_cover.png'
          } for i in medias]
     medias.append({
@@ -255,7 +255,7 @@ def my_new():
         movie_file_system.init(mid)
         if form.type.data == FULL_LENGTH:
             movie_file_system.init_series(mid, '0')
-        return redirect(f'/watch/{mid}?edit=true')
+        return redirect(f'/watch/{mid}')
     return render_template('my_new.html', title='Загрузить', form=form)
 
 

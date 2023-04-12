@@ -21,3 +21,7 @@ def get_lang_full_name(lang: str):
     if lang in LANG_MAP:
         return LANG_MAP[lang]
     return 'Undefined'
+
+
+def is_admin(user_name: str) -> bool:
+    return user_name in ADMINS

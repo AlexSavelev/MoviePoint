@@ -288,7 +288,7 @@ main {
 .service-btn {
     background-color: #1befc5;
     width: 120px;
-    color: #000000;
+    color: #000000!important;
     margin-right: auto;
     margin-left: auto;
     text-align: center;
