@@ -25,6 +25,8 @@ class MoviesResource(Resource):
     def put(self, movies_id):
         abort_if_movie_not_found(movies_id)
         args = {i: j for i, j in parser.parse_args().items() if j is not None}
+        if 'world_release_date' in args:
+            args['world_release_date'] = datetime.date.fromisoformat(args['world_release_date'])
         session = create_session()
         session.query(Movies).filter(Movies.id == movies_id).update(args)
         session.commit()

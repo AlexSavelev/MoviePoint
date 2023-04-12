@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block header2 %}
+<div class="header2-mini">
+    <h2 class="page-big-title-left">{{movie_title}}. Информация и управление</h2>
+    <p class="page-big-title-left-desc">Добавлено: {{publisher}}</p>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="edit-info-block">
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.title.label }}<br>
+            {{ form.title(class="form-control") }}<br>
+            {% for error in form.title.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.description.label }}<br>
+            {{ form.description(class="form-control") }}<br>
+            {% for error in form.description.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.duration.label }}<br>
+            {{ form.duration(class="form-control") }}<br>
+            {% for error in form.duration.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.genres.label }}<br>
+            {{ form.genres(class="form-control", type="select", rows=10, multiple=True) }}<br>
+            {% for error in form.genres.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.country.label }}<br>
+            {{ form.country(class="form-control") }}<br>
+            {% for error in form.country.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.director.label }}<br>
+            {{ form.director(class="form-control") }}<br>
+            {% for error in form.director.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.age.label }}<br>
+            {{ form.age(class="form-control", type="select") }}<br>
+            {% for error in form.age.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.world_release_date.label }}<br>
+            {{ form.world_release_date(class="form-control", type="date") }}<br>
+            {% for error in form.world_release_date.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+
+        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        <div>{{ message }}</div>
+    </form>
+    <button type="button" class="btn btn-danger" onclick="if(confirm('Вы уверены, что хотите сделать это?') == true){location.href='/edit/{{movie_id}}/remove';}">Удалить фильм</button>
+</div>
+{% endblock %}

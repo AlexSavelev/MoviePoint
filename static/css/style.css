@@ -507,6 +507,23 @@ ul.footer-menu li {
     margin-bottom: 15px;
 }
 
+.edit-info-block {
+    padding: 20px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    margin: auto;
+    width: 60%;
+    background-color: hsl(0,0%,90%);
+}
+
+.edit-info-block select[multiple] {
+    height: 200px!important;
+}
+
+.edit-info-block input, select {
+    width: 80%;
+}
+
 .movie-info-block {
     background-color: hsl(0,0%,90%);
     padding: 50px;

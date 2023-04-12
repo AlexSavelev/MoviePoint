@@ -1,3 +1,5 @@
+import datetime
+
 from flask import Flask
 from flask import render_template, redirect, send_from_directory, request, session, abort
 from flask_restful import abort, Api
@@ -18,7 +20,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user
 from flask_login.utils import current_user
 
 from forms.user import LoginForm, RegisterForm
-from forms.edit import MyNewForm, EditCoverForm, EditImagesForm
+from forms.edit import MyNewForm, EditCoverForm, EditImagesForm, EditMovieForm
 
 app = Flask(__name__)
 api = Api(app)
@@ -274,7 +276,7 @@ def edit_images(movie_id: int):
         return redirect('/login')
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
-    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id):
+    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
         abort(404)
     movie = movie['movie']
 
@@ -290,7 +292,7 @@ def edit_images_cover(movie_id: int):
         return redirect('/login')
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
-    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id):
+    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
         abort(404)
     movie = movie['movie']
 
@@ -314,7 +316,7 @@ def edit_images_load(movie_id: int):
         return redirect('/login')
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
-    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id):
+    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
         abort(404)
     movie = movie['movie']
 
@@ -343,7 +345,7 @@ def edit_images_remove(movie_id: int):
         abort(404)
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
-    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id):
+    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
         abort(404)
     movie = movie['movie']
 
@@ -358,14 +360,74 @@ def edit_images_remove(movie_id: int):
     return '<script>window.close();</script>'
 
 
-@app.route('/edit/<int:movie_id>/info')
+@app.route('/edit/<int:movie_id>/info', methods=['GET', 'POST'])
 def edit_info(movie_id: int):
-    pass
+    if check_user_is_not_authorized(f'/edit/{movie_id}/info'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
+        abort(404)
+    movie = movie['movie']
+
+    EditMovieForm.update_genres()
+    form = EditMovieForm()
+
+    if form.validate_on_submit():
+        user_movie_titles = [i['title'] for i in get(f'{SITE_PATH}/api/v1/movies/search', json={
+            'must_be_released': False, 'publisher': current_user.id}).json()['movies']]
+        if form.title.data in user_movie_titles and form.title.data != movie['title']:
+            return render_template('edit_info.html', title='Информация и управление', form=form,
+                                   message='Такое название у вас уже используется', movie_title=movie['title'],
+                                   publisher=movie['user']['username'], movie_id=movie_id)
+        put_data = {
+            'title': form.title.data,
+            'description': form.description.data,
+            'duration': form.duration.data,
+            'genres': ','.join(form.genres.data),
+            'country': form.country.data,
+            'director': form.director.data,
+            'age': form.age.data,
+            'world_release_date': form.world_release_date.data.isoformat()
+        }
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json=put_data)
+        return redirect(f'/watch/{movie_id}')
+
+    if not form.title.data:
+        form.title.data = movie['title']
+    if not form.description.data:
+        form.description.data = movie['description']
+    if not form.duration.data:
+        form.duration.data = movie['duration']
+    if not form.genres.data:
+        form.genres.data = movie['genres'].split(',')
+    if not form.country.data:
+        form.country.data = movie['country']
+    if not form.director.data:
+        form.director.data = movie['director']
+    if not form.age.data:
+        form.age.data = movie['age']
+    if not form.world_release_date.data:
+        form.world_release_date.data = datetime.date.fromisoformat(movie['world_release_date']) \
+            if movie['world_release_date'] else ''
+
+    return render_template('edit_info.html', title='Информация и управление', form=form, movie_title=movie['title'],
+                           publisher=movie['user']['username'], movie_id=movie_id)
 
 
 @app.route('/edit/<int:movie_id>/remove')
 def edit_remove(movie_id: int):
-    pass
+    if check_user_is_not_authorized(f'/edit/{movie_id}/remove'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
+        abort(404)
+
+    delete(f'{SITE_PATH}/api/v1/movies/{movie_id}')
+    movie_file_system.remove(movie_id)
+
+    return redirect('/my')
 
 
 @app.route('/edit/<int:movie_id>/private')

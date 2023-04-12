@@ -13,6 +13,8 @@ SERIES = 'S'
 
 # Languages
 LANG_MAP = {'ru': 'Russian', 'en': 'English'}
+# Ages
+AGES = ['0+', '6+', '12+', '16+', '18+']
 
 
 with open('admins.txt', 'r') as f:
