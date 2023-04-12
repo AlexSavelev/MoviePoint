@@ -4,7 +4,7 @@ SETUP_HOST = '0.0.0.0'
 PORT = 5000
 SITE_PATH = f'http://{HOST}:{PORT}'
 
-MEDIA_DATA_PATH = 'D:\\_Copies\\_HLS_SPLIT'
+MEDIA_DATA_PATH = 'E:\\HLS'
 MOVIE_PATH = '/static/movies'
 
 # Movie types:

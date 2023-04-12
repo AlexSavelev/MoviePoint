@@ -194,7 +194,7 @@ def watch(movie_id):
     else:
         seasons = []
         src = build_master_src(movie_id, '0')
-    images = [make_image_path(movie_id, i) for i in movie['images'].split() if i]
+    images = [make_image_path(movie_id, i) for i in movie['images'].split(',') if i]
     movie_title = movie['title']
     additional_css_links = ['/static/css/video-js.css', '/static/css/videojs-http-source-selector.css']
     description = [movie['duration'], movie['world_release_date'], movie['director'], movie['country'],
@@ -280,7 +280,7 @@ def edit_images(movie_id: int):
     movie = movie['movie']
 
     cover_ref = make_image_path(movie_id, movie['cover']) if movie['cover'] else '/static/img/no_cover.png'
-    image_refs = [{'abs': make_image_path(movie_id, i), 'rel': i} for i in movie['images'].split()]
+    image_refs = [{'abs': make_image_path(movie_id, i), 'rel': i} for i in movie['images'].split(',')]
     return render_template('edit_images.html', title='Картинки', cover_ref=cover_ref, image_refs=image_refs,
                            publisher=movie['user']['username'], movie_title=movie['title'], movie_id=movie_id)
 
