@@ -74,6 +74,11 @@ def load_user(user_id):
     return create_session().query(User).get(user_id)
 
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('', 'favicon.ico')
+
+
 @app.route('/')
 def index():
     return render_template('index.html', title='Movie Point')
