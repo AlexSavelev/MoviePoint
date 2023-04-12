@@ -142,6 +142,10 @@
         {% endif %}
     </div>
     <div class="movie-info-block">
-        <p>Тут должна быть инфа о фильме/сериале</p>
+        {% for i in range(lengh) %}
+            {% if description[i] != '' %}
+                <p>{{ strings[i] }} {{ description[i] }}</p>
+            {% endif %}
+        {% endfor %}
     </div>
 {% endblock %}
