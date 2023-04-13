@@ -330,7 +330,14 @@ def edit_images_load(movie_id: int):
         image_lst = movie['images'].split() if movie['images'] else []
         data = images_form.content.data
         for i in data:
-            filename = generate_file_name() + '.' + i.filename.split('.')[-1]
+            if not i:
+                continue
+            ext = i.filename.split('.')[-1]
+            if ext not in IMAGES or i.filename == ext:
+                return render_template('edit_images_load.html', title='Загрузка', publisher=movie['user']['username'],
+                                       movie_title=movie['title'], form=images_form, movie_id=movie_id,
+                                       message=f'Загружать можно ТОЛЬКО ИЗОБРАЖЕНИЯ форматов {", ".join(IMAGES)}!')
+            filename = generate_file_name() + '.' + ext
             movie_file_system.save_image(movie_id, filename, i)
             image_lst.append(filename)
         put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'images': ','.join(image_lst)})
@@ -354,12 +361,12 @@ def edit_images_remove(movie_id: int):
         abort(404)
     movie = movie['movie']
 
-    image_lst = movie['images'].split() if movie['images'] else []
+    image_lst = movie['images'].split(',') if movie['images'] else []
     if filename not in image_lst:
         abort(404)
 
     image_lst.remove(filename)
-    put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'images': ' '.join(image_lst)})
+    put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'images': ','.join(image_lst)})
     movie_file_system.remove_image(movie_id, filename)
 
     return '<script>window.close();</script>'

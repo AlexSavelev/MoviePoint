@@ -5,9 +5,7 @@ from wtforms import StringField, SelectField, SelectMultipleField, SubmitField, 
 from wtforms.validators import DataRequired
 
 from requests import get
-from config import SITE_PATH, FULL_LENGTH, SERIES, AGES
-
-IMAGES = 'jpg jpe jpeg png gif svg bmp'.split()
+from config import SITE_PATH, FULL_LENGTH, SERIES, AGES, IMAGES
 
 
 class MyNewForm(FlaskForm):
@@ -19,12 +17,13 @@ class MyNewForm(FlaskForm):
 class EditCoverForm(FlaskForm):
     content = FileField('Новая обложка', validators=[FileRequired(), FileAllowed(IMAGES, f'Загружать можно ТОЛЬКО '
                                                                                          f'ИЗОБРАЖЕНИЯ форматов '
-                                                                                         f'{", ".join(IMAGES)}')])
+                                                                                         f'{", ".join(IMAGES)}!')])
     submit = SubmitField('Установить')
 
 
 class EditImagesForm(FlaskForm):
-    content = MultipleFileField('Картинки', validators=[FileAllowed(IMAGES, 'Images only!')])
+    content = MultipleFileField('Картинки', validators=[FileAllowed(IMAGES, f'Загружать можно ТОЛЬКО ИЗОБРАЖЕНИЯ '
+                                                                            f'форматов {", ".join(IMAGES)}!')])
     submit = SubmitField('Установить')
 
 

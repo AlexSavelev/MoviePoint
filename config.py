@@ -15,7 +15,8 @@ SERIES = 'S'
 LANG_MAP = {'ru': 'Russian', 'en': 'English'}
 # Ages
 AGES = ['0+', '6+', '12+', '16+', '18+']
-
+# IMAGES
+IMAGES = 'jpg jpe jpeg png gif svg bmp'.split()
 
 with open('admins.txt', 'r') as f:
     ADMINS = [int(i.rstrip('\n')) for i in f.readlines() if i]
