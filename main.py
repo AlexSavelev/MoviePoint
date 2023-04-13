@@ -286,7 +286,7 @@ def edit_images(movie_id: int):
     movie = movie['movie']
 
     cover_ref = make_image_path(movie_id, movie['cover']) if movie['cover'] else '/static/img/no_cover.png'
-    image_refs = [{'abs': make_image_path(movie_id, i), 'rel': i} for i in movie['images'].split(',')]
+    image_refs = [{'abs': make_image_path(movie_id, i), 'rel': i} for i in movie['images'].split(',') if i]
     return render_template('edit_images.html', title='Картинки', cover_ref=cover_ref, image_refs=image_refs,
                            publisher=movie['user']['username'], movie_title=movie['title'], movie_id=movie_id)
 
