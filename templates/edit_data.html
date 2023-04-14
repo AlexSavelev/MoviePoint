@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block header2 %}
+<div class="header2-mini">
+    <h2 class="page-big-title-left">{{movie_title}}. Серии</h2>
+    <p class="page-big-title-left-desc">Добавлено: {{publisher}}</p>
+</div>
+{% endblock %}
+
+{% block main %}
+    <div class="edit-data-back">
+        <input type="button" class="btn btn-primary" onclick="location.href='/watch/{{movie_id}}';" value="<< Вернуться" />
+    </div>
+    <div class="edit-data">
+        <div class="flex-inline">
+            <button onclick="location.href='/edit/{{movie_id}}/data/add_season'" type="button" class="btn btn-secondary">Добавить сезон</button>
+            <button onclick="location.href='/edit/{{movie_id}}/data/edit_seasons'" type="button" class="btn btn-secondary">Редактировать названия</button>
+        </div>
+        {% for season in seasons %}
+        <h3>{{season[0]}}</h3>
+        <table border="1" class="season-table">
+            <tr class="season-header">
+                <td>Название</td>
+                <td>Управление</td>
+                <td>Видео дорожка</td>
+                <td>Аудио дорожки</td>
+                <td>Субтитры</td>
+                <td>Готово к публикации</td>
+            </tr>
+            {% for series in season[1] %}
+            <tr class="series-data">
+                <td>{{series.title}}</td>
+                <td><button onclick="location.href='/edit/{{movie_id}}/data/{{series.id}}'" type="button" class="btn btn-success">Перейти</button></td>
+                {% if series.video %}
+                    <td class="series-data-yes season-table-big-font">+</td>
+                {% else %}
+                    <td class="series-data-no season-table-big-font">-</td>
+                {% endif %}
+
+                {% if series.audio %}
+                    <td class="series-data-yes"><ul>
+                        {% for audio in series.audio %}
+                        <li>{{audio}}</li>
+                        {% endfor %}
+                    </ul></td>
+                {% else %}
+                    <td class="series-data-no season-table-big-font">-</td>
+                {% endif %}
+
+                {% if series.subs %}
+                    <td class="series-data-yes"><ul>
+                        {% for sub in series.subs %}
+                        <li>{{sub}}</li>
+                        {% endfor %}
+                    </ul></td>
+                {% else %}
+                    <td class="series-data-no season-table-big-font">-</td>
+                {% endif %}
+
+                {% if series.release %}
+                    <td class="series-data-yes season-table-big-font">+</td>
+                {% else %}
+                    <td class="series-data-no season-table-big-font">-</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+        <button onclick="location.href='/edit/{{movie_id}}/data/add_series?season={{season[0]}}'" type="button" class="btn btn-primary">Добавить серию</button>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -524,6 +524,51 @@ ul.footer-menu li {
     width: 80%;
 }
 
+.edit-data {
+    padding-left: 30px;
+    padding-right: 30px;
+    background-color: hsl(0,0%,90%);
+}
+
+.edit-data-back {
+    background-color: hsl(0,0%,90%);
+    padding-top: 30px;
+    padding-bottom: 30px;
+    padding-left: 100px;
+}
+
+.edit-data-back input {
+    height: 50px;
+}
+
+.season-table {
+
+}
+
+.season-table td {
+    padding: 10px;
+}
+
+.season-table-big-font {
+    font-size: 36pt;
+}
+
+.season-header {
+    background-color: #DDDDDD;
+}
+
+.series-data {
+    background-color: #EEEEFF;
+}
+
+.series-data-yes {
+    background-color: #EEFFEE;
+}
+
+.series-data-no {
+    background-color: #FFEEFF;
+}
+
 .movie-info-block {
     background-color: hsl(0,0%,90%);
     padding: 50px;

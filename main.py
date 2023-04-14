@@ -255,11 +255,21 @@ def my_new():
         if form.title.data in user_movie_titles:
             return render_template('my_new.html', title='Загрузить', form=form, message='Такое название у вас '
                                                                                         'уже используется')
+        movie_type = form.type.data
+        if movie_type == FULL_LENGTH:
+            movie_series = {'seasons': {
+                '0': [
+                    {'id': '0', 'title': '', 'video': False, 'audio': [], 'subs': []}
+                ]
+            }}
+        else:
+            movie_series = {'seasons': {}}
         mid = post(f'{SITE_PATH}/api/v1/movies', json={'publisher': current_user.id,
-                                                       'type': form.type.data,
-                                                       'title': form.title.data}).json()['movie_id']
+                                                       'type': movie_type,
+                                                       'title': form.title.data,
+                                                       'series': json.dumps(movie_series)}).json()['movie_id']
         movie_file_system.init(mid)
-        if form.type.data == FULL_LENGTH:
+        if movie_type == FULL_LENGTH:
             movie_file_system.init_series(mid, '0')
         return redirect(f'/watch/{mid}')
     return render_template('my_new.html', title='Загрузить', form=form)
@@ -267,7 +277,21 @@ def my_new():
 
 @app.route('/edit/<int:movie_id>/data')
 def edit_data(movie_id: int):
-    pass
+    if check_user_is_not_authorized(f'/edit/{movie_id}/data'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
+        abort(404)
+    movie = movie['movie']
+    if movie['type'] != SERIES:
+        return redirect(f'/watch/{movie_id}')
+
+    series = json.loads(movie['series'])
+    seasons = [(title, series) for title, series in series['seasons'].items()]
+
+    return render_template('edit_data.html', title='Серии', publisher=movie['user']['username'],
+                           movie_title=movie['title'], movie_id=movie_id, seasons=seasons)
 
 
 @app.route('/edit/<int:movie_id>/data/<string:series>')
@@ -281,7 +305,7 @@ def edit_images(movie_id: int):
         return redirect('/login')
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
-    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
         abort(404)
     movie = movie['movie']
 
@@ -297,7 +321,7 @@ def edit_images_cover(movie_id: int):
         return redirect('/login')
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
-    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
         abort(404)
     movie = movie['movie']
 
@@ -321,7 +345,7 @@ def edit_images_load(movie_id: int):
         return redirect('/login')
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
-    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
         abort(404)
     movie = movie['movie']
 
@@ -357,7 +381,7 @@ def edit_images_remove(movie_id: int):
         abort(404)
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
-    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
         abort(404)
     movie = movie['movie']
 
@@ -378,7 +402,7 @@ def edit_info(movie_id: int):
         return redirect('/login')
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
-    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
         abort(404)
     movie = movie['movie']
 
@@ -433,7 +457,7 @@ def edit_remove(movie_id: int):
         return redirect('/login')
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
-    if ('movie' not in movie) or (movie['movie']['publisher'] not in ([current_user.id] + ADMINS)):
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
         abort(404)
 
     delete(f'{SITE_PATH}/api/v1/movies/{movie_id}')
