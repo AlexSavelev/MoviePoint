@@ -55,9 +55,9 @@ flowchart TD
 
     S --> |English audio| U(data0000.ts)
     U --> W(data0001.ts)
-    W --> X(data0002.ts)
+    W --> X(...)
 
     T --> |Russian subtitles| Y(data0000.ts)
     Y --> Z(data0001.ts)
-    Z --> V(data0002.ts)
+    Z --> V(...)
 ```
