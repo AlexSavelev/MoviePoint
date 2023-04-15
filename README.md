@@ -34,6 +34,8 @@ flowchart TD
     B --> D{stream_1.m3u8}
     B --> E{stream_2.m3u8}
     B --> F{stream_3.m3u8}
+    B --> S{audio_en.m3u8}
+    B --> T{subs_ru.m3u8}
 
     C --> |1920x1080| G(data0000.ts)
     G --> H(data0001.ts)
@@ -50,4 +52,12 @@ flowchart TD
     F --> |640x360| P(data0000.ts)
     P --> Q(data0001.ts)
     Q --> R(...)
+
+    S --> |English audio| U(data0000.ts)
+    U --> W(data0001.ts)
+    W --> X(data0002.ts)
+
+    T --> |Russian audio| Y(data0000.ts)
+    Y --> Z(data0001.ts)
+    Z --> V(data0002.ts)
 ```
