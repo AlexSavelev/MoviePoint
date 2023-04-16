@@ -42,3 +42,9 @@ class EditMovieForm(FlaskForm):
     def update_genres():
         EditMovieForm.genres = SelectMultipleField('Жанры', choices=[
             (str(i['id']), i['title']) for i in get(f'{SITE_PATH}/api/v1/genres').json()['genres']])
+
+
+class EditDataNewForm(FlaskForm):
+    season = StringField('Сезон', validators=[DataRequired()])
+    title = StringField('Название', validators=[DataRequired()])
+    submit = SubmitField('Применить')

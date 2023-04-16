@@ -10,7 +10,7 @@ def build_master_src(movie_id, series_id):
     return f'{MOVIE_PATH}/{movie_id}/{series_id}/master.m3u8'
 
 
-def generate_file_name(length=25):
+def generate_string(length=25):
     DIGITS = '0123456789'
     LETTERS = 'qwertyuiopasdfghjklzxcvbnm'
     SYMBOLS = LETTERS + LETTERS.upper() + DIGITS

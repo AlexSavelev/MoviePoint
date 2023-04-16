@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block header2 %}
+<div class="header2-mini">
+    <h2 class="page-big-title-left">{{movie_title}}. {{title}}</h2>
+    <p class="page-big-title-left-desc">Добавлено: {{publisher}}</p>
+</div>
+{% endblock %}
+
+{% block main %}
+    <form action="" method="post" class="base-form">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.season.label }}<br>
+            {{ form.season(class="form-control", list="id_datalist", placeholder="Сезон 1") }}
+            <datalist id="id_datalist">
+                {% for season_title in seasons_titles %}
+                <option value="{{season_title}}">
+                {% endfor %}
+            </datalist><br>
+            {% for error in form.title.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.title.label }}<br>
+            {{ form.title(class="form-control") }}<br>
+            {% for error in form.title.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        <div>{{ message }}</div>
+    </form>
+{% endblock %}

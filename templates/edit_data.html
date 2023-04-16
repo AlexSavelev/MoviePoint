@@ -9,12 +9,11 @@
 
 {% block main %}
     <div class="edit-data-back">
-        <input type="button" class="btn btn-primary" onclick="location.href='/watch/{{movie_id}}';" value="<< Вернуться" />
+        <input type="button" class="btn btn-secondary" onclick="location.href='/watch/{{movie_id}}';" value="<< Вернуться" />
     </div>
     <div class="edit-data">
         <div class="flex-inline">
-            <button onclick="location.href='/edit/{{movie_id}}/data/add_season'" type="button" class="btn btn-secondary">Добавить сезон</button>
-            <button onclick="location.href='/edit/{{movie_id}}/data/edit_seasons'" type="button" class="btn btn-secondary">Редактировать названия</button>
+            <button onclick="location.href='/edit/{{movie_id}}/data/add_series'" type="button" class="btn btn-primary">Добавить серию</button>
         </div>
         {% for season in seasons %}
         <h3>{{season[0]}}</h3>
@@ -65,7 +64,6 @@
             </tr>
             {% endfor %}
         </table>
-        <button onclick="location.href='/edit/{{movie_id}}/data/add_series?season={{season[0]}}'" type="button" class="btn btn-primary">Добавить серию</button>
         {% endfor %}
     </div>
 {% endblock %}
