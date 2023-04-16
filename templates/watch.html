@@ -142,17 +142,11 @@
         {% endif %}
     </div>
     <div class="movie-info-block">
-        {% for i in range(lengh) %}
-            {% if description[i][2] == True %}
-                {% if description[i][1] != '' %}
-                    <p>{{ description[i][0] }}: {{ description[i][1] }}</p>
-                {% else %}
-                    <p>{{ description[i][0] }}: Отсутствует</p>
-                {% endif %}
-            {% else %}
-                {% if description[i][1] != '' %}
-                    <p>{{ description[i][0] }}: {{ description[i][1] }}</p>
-                {% endif %}
+        {% for i in description %}
+            {% if not i[1] and i[2] %}
+                <p>{{i[0]}}: Не указано</p>
+            {% elif i[1] %}
+                <p>{{i[0]}}: {{i[1]}}</p>
             {% endif %}
         {% endfor %}
     </div>

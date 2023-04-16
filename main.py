@@ -180,7 +180,6 @@ def watch(movie_id):
     if (not published) and (not is_editor):
         abort(404)
 
-    number_of_episodes = 0
     if movie['type'] == SERIES:
         movie_series = json.loads(movie['series'])['seasons']
         seasons_titles = sorted(movie_series.keys())
@@ -192,9 +191,6 @@ def watch(movie_id):
                   } for series_it in movie_series[season_title] if series_it['release']
              ]
              } for season_title in seasons_titles]
-        for series_list in movie_series.values():
-            number_of_episodes += len(series_list)
-        number_of_episodes = str(number_of_episodes)
         if f'last_movie_series_{movie_id}' in request.cookies:
             src = request.cookies[f'last_movie_series_{movie_id}']
         else:
@@ -205,25 +201,21 @@ def watch(movie_id):
     images = [make_image_path(movie_id, i) for i in movie['images'].split(',') if i]
     movie_title = movie['title']
     additional_css_links = ['/static/css/video-js.css', '/static/css/videojs-http-source-selector.css']
+
+    movie['world_release_date'] = datetime.date.fromisoformat(movie['world_release_date']).strftime('%d/%m/%Y')
+    movie['genres'] = ', '.join([get(f'{SITE_PATH}/api/v1/genres/{i}').json().
+                                get('genre', {}).get('title', '_') for i in movie['genres'].split(',')])
     description = [('Продолжительность', movie['duration'], False), ('Дата выхода', movie['world_release_date'], False),
                    ('Режисёр', movie['director'], True), ('Страна', movie['country'], False),
                    ('Жанры', movie['genres'], True), ('Возрастной рейтинг', movie['age'], True),
-                   ('Количество серий', number_of_episodes, True), ('Описание', movie['description'], True)]
-    mounth = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября',
-             'декабря']
-    '''description[1][1] = description[1][1].split('-')[2] + ' ' + mounth[int(description[1][1].split('-')[1]) - 1] + ' ' \
-                    + description[1][1].split('-')[0]'''
-    lengh = len(description)
-    '''lis = description[4].split(',')
-    description[4] = ''
-    print(lis)
-    for i in range(len(lis)):
-        description[4] = description[4] + genres_resources.GenresResource.get(int(lis[i]))['genre']
-    print(description[4])'''
+                   ('Описание', movie['description'], True)]
+
+    # month = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября',
+    # 'октября', 'ноября', 'декабря']
     return render_template('watch.html', title=f'Смотреть "{movie_title}"', movie_title=movie_title, movie_id=movie_id,
                            publisher=movie['user']['username'], additional_css_links=additional_css_links,
                            seasons=seasons, src=src, images=images, is_editor=is_editor, published=published,
-                           description=list(description), lengh=lengh)
+                           description=description)
 
 
 @app.route('/my')
@@ -777,6 +769,7 @@ def edit_publish(movie_id: int):
         ('Описание', 2 if movie['description'] else -2),
         ('Жанры', 2 if movie['genres'] else -2),
         ('Возрастной рейтинг', 2 if movie['age'] else -2),
+        ('Режисёр', 2 if movie['director'] else -2),
         ('Обложка', 2 if movie['cover'] else -2),
         ('Фильм' if movie['type'] == FULL_LENGTH else 'Серии', 1 if publish_series >= 1 else 0, series_verdict)
     ]
@@ -784,7 +777,6 @@ def edit_publish(movie_id: int):
 
     form = EditPublishForm()
     if form.validate_on_submit():
-
         put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'user_released': True})
         return redirect(f'/watch/{movie_id}')
 
