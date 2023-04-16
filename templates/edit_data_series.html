@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block header2 %}
+<div class="header2-mini">
+    {% if is_not_series %}
+        <h2 class="page-big-title-left">{{movie_title}}. Редактирование</h2>
+    {% else %}
+        <h2 class="page-big-title-left">{{movie_title}}. Редактирование серии</h2>
+    {% endif %}
+    <p class="page-big-title-left-desc">Добавлено: {{publisher}}</p>
+</div>
+{% endblock %}
+
+{% block main %}
+    <div class="edit-data-back">
+        <input type="button" class="btn btn-secondary" onclick="location.href='/edit/{{movie_id}}/data';" value="<< Вернуться" />
+    </div>
+    <div class="edit-data">
+        <div class="flex-inline">
+            {% if is_not_series %}
+                <button type="button" class="btn btn-danger" onclick="if(confirm('Вы уверены, что хотите сделать это?') == true){location.href='/edit/{{movie_id}}/remove';}">Удалить фильм</button>
+            {% else %}
+                <button onclick="location.href='/edit/{{movie_id}}/data/{{series.id}}/title'" type="button" class="btn btn-primary">Изменить название / сезон</button>
+                <button type="button" class="btn btn-danger" onclick="if(confirm('Вы уверены, что хотите сделать это?') == true){location.href='/edit/{{movie_id}}/data/{{series.id}}/remove';}">Удалить серию</button>
+            {% endif %}
+        </div>
+        {% if is_not_series %}
+        <h3>{{movie_title}}</h3>
+        {% else %}
+        <h3>{{season}}. {{series.title}}</h3>
+        {% endif %}
+
+        <table border="1" class="season-table">
+            <tr class="season-header">
+                <td>Видео дорожка</td>
+                <td>Аудио дорожки</td>
+                <td>Субтитры</td>
+                <td>Готово к публикации</td>
+            </tr>
+            <tr class="series-data">
+                {% if series.video %}
+                    <td class="series-data-yes season-table-big-font">+</td>
+                {% else %}
+                    <td class="series-data-no"><button onclick="location.href='/edit/{{movie_id}}/data/{{series.id}}/video'" type="button" class="btn btn-primary">Загрузить</button></td>
+                {% endif %}
+
+                {% if series.audio %}
+                    <td class="series-data-yes">
+                        <ul>
+                            {% for audio in series.audio %}
+                            <li>{{audio}}</li>
+                            {% endfor %}
+                        </ul>
+                        <button onclick="location.href='/edit/{{movie_id}}/data/{{series.id}}/audio'" type="button" class="btn btn-primary">Загрузить</button>
+                    </td>
+                {% else %}
+                    {% if series.video %}
+                        <td class="series-data-no"><button onclick="location.href='/edit/{{movie_id}}/data/{{series.id}}/audio'" type="button" class="btn btn-primary">Загрузить</button></td>
+                    {% else %}
+                        <td class="series-data-no">Загрузите видео дорожку</td>
+                    {% endif %}
+                {% endif %}
+
+                {% if series.subs %}
+                    <td class="series-data-yes">
+                        <ul>
+                            {% for sub in series.subs %}
+                            <li>{{sub}}</li>
+                            {% endfor %}
+                        </ul>
+                        <button onclick="location.href='/edit/{{movie_id}}/data/{{series.id}}/subs'" type="button" class="btn btn-primary">Загрузить</button>
+                    </td>
+                {% else %}
+                    {% if series.video %}
+                        <td class="series-data-no"><button onclick="location.href='/edit/{{movie_id}}/data/{{series.id}}/subs'" type="button" class="btn btn-primary">Загрузить</button></td>
+                    {% else %}
+                        <td class="series-data-no">Загрузите видео дорожку</td>
+                    {% endif %}
+                {% endif %}
+
+                {% if series.release %}
+                    <td class="series-data-yes season-table-big-font">+</td>
+                {% else %}
+                    <td class="series-data-no">
+                        Для публикации необходимы:
+                        <ol>
+                            <li>Видео дорожка</li>
+                            <li>Одна аудио дорожка</li>
+                        </ol>
+                    </td>
+                {% endif %}
+            </tr>
+        </table>
+    </div>
+{% endblock %}

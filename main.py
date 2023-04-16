@@ -20,7 +20,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user
 from flask_login.utils import current_user
 
 from forms.user import LoginForm, RegisterForm
-from forms.edit import MyNewForm, EditCoverForm, EditImagesForm, EditMovieForm, EditDataNewForm
+from forms.edit import MyNewForm, EditCoverForm, EditImagesForm, EditMovieForm, EditSeriesTitleForm
 
 app = Flask(__name__)
 api = Api(app)
@@ -297,7 +297,7 @@ def edit_data(movie_id: int):
 
 @app.route('/edit/<int:movie_id>/data/add_series', methods=['GET', 'POST'])
 def edit_data_add(movie_id: int):
-    if check_user_is_not_authorized(f'/edit/{movie_id}/data'):
+    if check_user_is_not_authorized(f'/edit/{movie_id}/data/add_series'):
         return redirect('/login')
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
@@ -310,13 +310,14 @@ def edit_data_add(movie_id: int):
     series = json.loads(movie['series'])
     seasons_titles = sorted(series['seasons'].keys())
 
-    form = EditDataNewForm()
+    form = EditSeriesTitleForm()
     if form.validate_on_submit():
         season, title = form.season.data, form.title.data
         season_series_titles = [i['title'] for i in series['seasons'].get(season, [])]
         if title in season_series_titles:
-            return render_template('edit_data_series_edit.html', title='Добавить серию', publisher=movie['user']['username'],
-                                   movie_title=movie['title'], seasons_titles=seasons_titles, form=form,
+            return render_template('edit_data_series_title.html', title='Добавить серию',
+                                   publisher=movie['user']['username'], movie_title=movie['title'],
+                                   seasons_titles=seasons_titles, form=form,
                                    message='Серия с таким названием уже существует в данном сезоне')
 
         series_id = generate_string()
@@ -330,13 +331,101 @@ def edit_data_add(movie_id: int):
 
         return redirect(f'/edit/{movie_id}/data/{series_id}')
 
-    return render_template('edit_data_series_edit.html', title='Добавить серию', publisher=movie['user']['username'],
+    return render_template('edit_data_series_title.html', title='Добавить серию', publisher=movie['user']['username'],
                            movie_title=movie['title'], seasons_titles=seasons_titles, form=form)
 
 
 @app.route('/edit/<int:movie_id>/data/<string:series>')
 def edit_data_series(movie_id: int, series: str):
-    return 'edit_data_series'
+    if check_user_is_not_authorized(f'/edit/{movie_id}/data/{series}'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
+        abort(404)
+    movie = movie['movie']
+
+    season, series_data = find_series_by_id(series, json.loads(movie['series'])['seasons'])
+    if not series_data:
+        abort(404)
+
+    is_not_series = movie['type'] != SERIES
+    return render_template('edit_data_series.html', title='Редактирование серии', publisher=movie['user']['username'],
+                           movie_title=movie['title'], movie_id=movie_id, series=series_data, season=season,
+                           is_not_series=is_not_series)
+
+
+@app.route('/edit/<int:movie_id>/data/<string:series>/title', methods=['GET', 'POST'])
+def edit_data_series_title(movie_id: int, series: str):
+    if check_user_is_not_authorized(f'/edit/{movie_id}/data/{series}/title'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
+        abort(404)
+    movie = movie['movie']
+    if movie['type'] != SERIES:
+        return redirect(f'/watch/{movie_id}')
+
+    series_json = json.loads(movie['series'])
+    seasons_titles = sorted(series_json['seasons'].keys())
+    old_season, old_series_data = find_series_by_id(series, series_json['seasons'])
+    if not old_series_data:
+        abort(404)
+
+    form = EditSeriesTitleForm()
+    if form.validate_on_submit():
+        season, title = form.season.data, form.title.data
+        if season == old_season:
+            season_series_titles = [i['title'] for i in series_json['seasons'].get(season, [])
+                                    if i['title'] != old_series_data['title']]
+        else:
+            season_series_titles = [i['title'] for i in series_json['seasons'].get(season, [])]
+        if title in season_series_titles:
+            return render_template('edit_data_series_title.html', title='Редактировать серию',
+                                   publisher=movie['user']['username'], movie_title=movie['title'],
+                                   seasons_titles=seasons_titles, form=form, season=season,
+                                   message='Серия с таким названием уже существует в данном сезоне')
+
+        # Remove
+        series_json['seasons'][old_season].remove(old_series_data)
+        if not series_json['seasons'][old_season]:
+            series_json['seasons'].pop(old_season)
+        # Add
+        if season not in series_json['seasons']:
+            series_json['seasons'][season] = []
+        new_series_data = old_series_data.copy()
+        new_series_data['title'] = title
+        series_json['seasons'][season].append(new_series_data)
+        series_json['seasons'][season].sort(key=lambda x: x['title'])
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
+
+        return redirect(f'/edit/{movie_id}/data/{series}')
+
+    form.season.data, form.title.data = old_season, old_series_data['title']
+    return render_template('edit_data_series_title.html', title='Редактировать серию',
+                           publisher=movie['user']['username'], movie_title=movie['title'],
+                           seasons_titles=seasons_titles, form=form)
+
+
+@app.route('/edit/<int:movie_id>/data/<string:series>/video', methods=['GET', 'POST'])
+def edit_data_series_video(movie_id: int, series: str):
+    if check_user_is_not_authorized(f'/edit/{movie_id}/data/{series}/video'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
+        abort(404)
+    movie = movie['movie']
+
+    season, series_data = find_series_by_id(series, json.loads(movie['series'])['seasons'])
+    if not series_data:
+        abort(404)
+    if series_data['video']:
+        return redirect(f'/edit/{movie_id}/data/{series}')
+
+    return render_template('edit_data_series_video.html', title='Загрузка видео', publisher=movie['user']['username'],
+                           movie_title=movie['title'], movie_id=movie_id)
 
 
 @app.route('/edit/<int:movie_id>/images', methods=['GET', 'POST'])
