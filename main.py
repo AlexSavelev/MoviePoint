@@ -20,7 +20,8 @@ from flask_login import LoginManager, login_user, login_required, logout_user
 from flask_login.utils import current_user
 
 from forms.user import LoginForm, RegisterForm
-from forms.edit import MyNewForm, EditCoverForm, EditImagesForm, EditMovieForm, EditSeriesTitleForm
+from forms.edit import MyNewForm, EditCoverForm, EditImagesForm, EditMovieForm, EditPublishForm, EditSeriesTitleForm, \
+    EditSeriesVideoForm, EditSeriesAudioForm, EditSeriesSubsForm
 
 app = Flask(__name__)
 api = Api(app)
@@ -259,7 +260,7 @@ def my_new():
         if movie_type == FULL_LENGTH:
             movie_series = {'seasons': {
                 '0': [
-                    {'id': '0', 'title': '', 'video': False, 'audio': [], 'subs': []}
+                    {'id': '0', 'title': '', 'video': 0, 'audio': [], 'subs': []}
                 ]
             }}
         else:
@@ -324,10 +325,11 @@ def edit_data_add(movie_id: int):
         if season not in series['seasons']:
             series['seasons'][season] = []
         series['seasons'][season].append({
-            'id': series_id, 'title': title, 'video': False, 'audio': [], 'subs': [], 'release': False
+            'id': series_id, 'title': title, 'video': 0, 'audio': [], 'subs': [], 'release': False
         })
         series['seasons'][season].sort(key=lambda x: x['title'])
         put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series)})
+        movie_file_system.init_series(movie_id, series_id)
 
         return redirect(f'/edit/{movie_id}/data/{series_id}')
 
@@ -418,14 +420,152 @@ def edit_data_series_video(movie_id: int, series: str):
         abort(404)
     movie = movie['movie']
 
-    season, series_data = find_series_by_id(series, json.loads(movie['series'])['seasons'])
+    if not ENABLE_DATA_LOAD:
+        return '<h1>Загрузка файлов за сервер временно приостановлена!</h1>'
+
+    series_json = json.loads(movie['series'])
+    season, series_data = find_series_by_id(series, series_json['seasons'])
     if not series_data:
         abort(404)
-    if series_data['video']:
+    if series_data['video'] != 0:
+        return redirect(f'/edit/{movie_id}/data/{series}')
+
+    form = EditSeriesVideoForm()
+    if form.validate_on_submit():
+        data = form.content.data
+        result = movie_file_system.save_video(movie_id, series, data.filename.split('.')[-1], data)
+        if not result:
+            return render_template('edit_data_series_video.html', title='Загрузка видео',
+                                   publisher=movie['user']['username'],
+                                   movie_title=movie['title'], movie_id=movie_id, form=form,
+                                   message='Произошла ошибка в обработке файла')
+
+        series_data['video'] = -1
+        series_json = change_series_json(season, series, series_data, series_json)
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
+
         return redirect(f'/edit/{movie_id}/data/{series}')
 
     return render_template('edit_data_series_video.html', title='Загрузка видео', publisher=movie['user']['username'],
-                           movie_title=movie['title'], movie_id=movie_id)
+                           movie_title=movie['title'], movie_id=movie_id, form=form)
+
+
+@app.route('/edit/<int:movie_id>/data/<string:series>/audio', methods=['GET', 'POST'])
+def edit_data_series_audio(movie_id: int, series: str):
+    if check_user_is_not_authorized(f'/edit/{movie_id}/data/{series}/audio'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
+        abort(404)
+    movie = movie['movie']
+
+    if not ENABLE_DATA_LOAD:
+        return '<h1>Загрузка файлов за сервер временно приостановлена!</h1>'
+
+    series_json = json.loads(movie['series'])
+    season, series_data = find_series_by_id(series, series_json['seasons'])
+    if not series_data:
+        abort(404)
+    if any([i['state'] == -1 for i in series_data['audio']]) or series_data['video'] != 1:
+        return redirect(f'/edit/{movie_id}/data/{series}')
+
+    form = EditSeriesAudioForm()
+    if form.validate_on_submit():
+        lang, data = form.lang.data, form.content.data
+        if lang in [i['lang'] for i in series_data['audio']]:
+            return render_template('edit_data_series_audio.html', title='Загрузка аудио',
+                                   publisher=movie['user']['username'],
+                                   movie_title=movie['title'], movie_id=movie_id, form=form,
+                                   message='Аудио дорожка с этим языком уже существует')
+        result = movie_file_system.save_audio_channel(movie_id, series, lang, data.filename.split('.')[-1], data)
+        if not result:
+            return render_template('edit_data_series_audio.html', title='Загрузка аудио',
+                                   publisher=movie['user']['username'],
+                                   movie_title=movie['title'], movie_id=movie_id, form=form,
+                                   message='Произошла ошибка в обработке файла')
+
+        series_data['audio'].append({'lang': lang, 'state': -1})
+        series_json = change_series_json(season, series, series_data, series_json)
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
+
+        return redirect(f'/edit/{movie_id}/data/{series}')
+
+    return render_template('edit_data_series_audio.html', title='Загрузка аудио', publisher=movie['user']['username'],
+                           movie_title=movie['title'], movie_id=movie_id, form=form)
+
+
+@app.route('/edit/<int:movie_id>/data/<string:series>/subs', methods=['GET', 'POST'])
+def edit_data_series_subs(movie_id: int, series: str):
+    if check_user_is_not_authorized(f'/edit/{movie_id}/data/{series}/subs'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
+        abort(404)
+    movie = movie['movie']
+
+    if not ENABLE_DATA_LOAD:
+        return '<h1>Загрузка файлов за сервер временно приостановлена!</h1>'
+
+    series_json = json.loads(movie['series'])
+    season, series_data = find_series_by_id(series, series_json['seasons'])
+    if not series_data:
+        abort(404)
+    if any([i['state'] == -1 for i in series_data['subs']]) or series_data['video'] != 1:
+        return redirect(f'/edit/{movie_id}/data/{series}')
+
+    form = EditSeriesSubsForm()
+    if form.validate_on_submit():
+        lang, data = form.lang.data, form.content.data
+        if lang in [i['lang'] for i in series_data['subs']]:
+            return render_template('edit_data_series_subs.html', title='Загрузка субтитров',
+                                   publisher=movie['user']['username'],
+                                   movie_title=movie['title'], movie_id=movie_id, form=form,
+                                   message='Дорожка субтитров с этим языком уже существует')
+        result = movie_file_system.save_subtitle_channel(movie_id, series, lang, data.filename.split('.')[-1], data)
+        if not result:
+            return render_template('edit_data_series_subs.html', title='Загрузка субтитров',
+                                   publisher=movie['user']['username'],
+                                   movie_title=movie['title'], movie_id=movie_id, form=form,
+                                   message='Произошла ошибка в обработке файла')
+
+        series_data['subs'].append({'lang': lang, 'state': -1})
+        series_json = change_series_json(season, series, series_data, series_json)
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
+
+        return redirect(f'/edit/{movie_id}/data/{series}')
+
+    return render_template('edit_data_series_subs.html', title='Загрузка субтитров',
+                           publisher=movie['user']['username'],  movie_title=movie['title'],
+                           movie_id=movie_id, form=form)
+
+
+@app.route('/edit/<int:movie_id>/data/<string:series>/remove', methods=['GET', 'POST'])
+def edit_data_series_remove(movie_id: int, series: str):
+    if check_user_is_not_authorized(f'/edit/{movie_id}/data/{series}/remove'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
+        abort(404)
+    movie = movie['movie']
+    if movie['type'] != SERIES:
+        return redirect(f'/watch/{movie_id}')
+
+    series_json = json.loads(movie['series'])
+    season, series_data = find_series_by_id(series, series_json['seasons'])
+    if not series_data:
+        abort(404)
+
+    for i in range(len(series_json['seasons'][season])):
+        if series_json['seasons'][season][i]['id'] == series:
+            series_json['seasons'][season].pop(i)
+            break
+    put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
+    movie_file_system.remove_series(movie_id, series)
+
+    return redirect(f'/edit/{movie_id}/data')
 
 
 @app.route('/edit/<int:movie_id>/images', methods=['GET', 'POST'])
@@ -454,6 +594,9 @@ def edit_images_cover(movie_id: int):
         abort(404)
     movie = movie['movie']
 
+    if not ENABLE_DATA_LOAD:
+        return '<h1>Загрузка файлов за сервер временно приостановлена!</h1>'
+
     cover_form = EditCoverForm()
     if cover_form.validate_on_submit():
         if movie['cover']:
@@ -477,6 +620,9 @@ def edit_images_load(movie_id: int):
     if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
         abort(404)
     movie = movie['movie']
+
+    if not ENABLE_DATA_LOAD:
+        return '<h1>Загрузка файлов за сервер временно приостановлена!</h1>'
 
     images_form = EditImagesForm()
     if images_form.validate_on_submit():
@@ -597,12 +743,54 @@ def edit_remove(movie_id: int):
 
 @app.route('/edit/<int:movie_id>/private')
 def edit_private(movie_id: int):
-    pass
+    if check_user_is_not_authorized(f'/edit/{movie_id}/private'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
+        abort(404)
+
+    put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'user_released': False})
+    return redirect(f'/watch/{movie_id}')
 
 
-@app.route('/edit/<int:movie_id>/publish')
+@app.route('/edit/<int:movie_id>/publish', methods=['GET', 'POST'])
 def edit_publish(movie_id: int):
-    pass
+    if check_user_is_not_authorized(f'/edit/{movie_id}/publish'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+    if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
+        abort(404)
+    movie = movie['movie']
+
+    publish_series, total_series = 0, 0
+    for season in json.loads(movie['series'])['seasons'].values():
+        total_series += len(season)
+        publish_series += sum([int(i['release']) for i in season])
+    if movie['type'] == FULL_LENGTH:
+        series_verdict = 'Загружено' if publish_series >= 1 else 'Не загружено'
+    else:
+        series_verdict = f'Готово к публикации {publish_series}/{total_series} (для публикации необходима одна серия)'
+
+    fill_data = [
+        ('Описание', 2 if movie['description'] else -2),
+        ('Жанры', 2 if movie['genres'] else -2),
+        ('Возрастной рейтинг', 2 if movie['age'] else -2),
+        ('Обложка', 2 if movie['cover'] else -2),
+        ('Фильм' if movie['type'] == FULL_LENGTH else 'Серии', 1 if publish_series >= 1 else 0, series_verdict)
+    ]
+    can_be_released = all([i[1] == 1 or i[1] == 2 for i in fill_data])
+
+    form = EditPublishForm()
+    if form.validate_on_submit():
+
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'user_released': True})
+        return redirect(f'/watch/{movie_id}')
+
+    return render_template('edit_publish.html', title='Публикация', form=form, movie_title=movie['title'],
+                           publisher=movie['user']['username'], movie_id=movie_id, data=fill_data,
+                           can_be_released=can_be_released)
 
 
 if __name__ == '__main__':

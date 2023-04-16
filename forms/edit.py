@@ -1,11 +1,11 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, SelectField, SelectMultipleField, SubmitField, \
-    FileField, MultipleFileField, DateField, TextAreaField, IntegerField
+    FileField, MultipleFileField, DateField, TextAreaField
 from wtforms.validators import DataRequired
 
 from requests import get
-from config import SITE_PATH, FULL_LENGTH, SERIES, AGES, IMAGES
+from config import SITE_PATH, FULL_LENGTH, SERIES, AGES, IMAGES, LANG_MAP
 
 
 class MyNewForm(FlaskForm):
@@ -44,6 +44,10 @@ class EditMovieForm(FlaskForm):
             (str(i['id']), i['title']) for i in get(f'{SITE_PATH}/api/v1/genres').json()['genres']])
 
 
+class EditPublishForm(FlaskForm):
+    submit = SubmitField('Опубликовать')
+
+
 class EditSeriesTitleForm(FlaskForm):
     season = StringField('Сезон', validators=[DataRequired()])
     title = StringField('Название', validators=[DataRequired()])
@@ -54,6 +58,20 @@ class EditSeriesVideoForm(FlaskForm):
     content = FileField('Видео (mp4, h264)', validators=[FileRequired(), FileAllowed(['mp4', 'h264'],
                                                                                      f'Загружать можно ТОЛЬКО ВИДЕО '
                                                                                      f'форматов mp4, h264!')])
-    max_bitrate = IntegerField('Битрейт видео (kbps)', validators=[DataRequired()])
-    max_height = IntegerField('Высота видео (px)', validators=[DataRequired()])
+    submit = SubmitField('Загрузить')
+
+
+class EditSeriesAudioForm(FlaskForm):
+    lang = SelectField('Язык', choices=[(i, j[1]) for i, j in LANG_MAP.items()])
+    content = FileField('Аудио (mp3, aac)', validators=[FileRequired(), FileAllowed(['mp3', 'aac'],
+                                                                                    f'Загружать можно ТОЛЬКО АУДИО '
+                                                                                    f'форматов mp3, aac!')])
+    submit = SubmitField('Загрузить')
+
+
+class EditSeriesSubsForm(FlaskForm):
+    lang = SelectField('Язык', choices=[(i, j[1]) for i, j in LANG_MAP.items()])
+    content = FileField('Субтитры (srt, vtt)', validators=[FileRequired(), FileAllowed(['srt', 'vtt'],
+                                                                                       f'Загружать можно ТОЛЬКО '
+                                                                                       f'СУБТИТРЫ форматов srt, vtt!')])
     submit = SubmitField('Загрузить')

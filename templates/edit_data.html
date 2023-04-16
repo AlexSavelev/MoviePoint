@@ -30,8 +30,10 @@
             <tr class="series-data">
                 <td>{{series.title}}</td>
                 <td><button onclick="location.href='/edit/{{movie_id}}/data/{{series.id}}'" type="button" class="btn btn-success">Перейти</button></td>
-                {% if series.video %}
+                {% if series.video == 1 %}
                     <td class="series-data-yes season-table-big-font">+</td>
+                {% elif series.video == -1 %}
+                    <td class="series-data-no">Идет обработка</td>
                 {% else %}
                     <td class="series-data-no season-table-big-font">-</td>
                 {% endif %}
@@ -39,7 +41,12 @@
                 {% if series.audio %}
                     <td class="series-data-yes"><ul>
                         {% for audio in series.audio %}
-                        <li>{{audio}}</li>
+                        {% if audio.state == 1 %}
+                            <li>{{audio.lang}}</li>
+                        {% elif audio.state == -1 %}
+                            <li>{{audio.lang}} - идет обработка</li>
+                        {% else %}
+                        {% endif %}
                         {% endfor %}
                     </ul></td>
                 {% else %}
@@ -49,7 +56,7 @@
                 {% if series.subs %}
                     <td class="series-data-yes"><ul>
                         {% for sub in series.subs %}
-                        <li>{{sub}}</li>
+                        <li>{{sub.lang}}</li>
                         {% endfor %}
                     </ul></td>
                 {% else %}

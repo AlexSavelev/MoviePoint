@@ -14,11 +14,11 @@ FULL_LENGTH = 'FL'
 SERIES = 'S'
 
 # Languages
-LANG_MAP = {'ru': 'Russian', 'en': 'English'}
+LANG_MAP = {'ru': ('Russian', 'Русский'), 'en': ('English', 'Английский')}
 # Ages
 AGES = ['0+', '6+', '12+', '16+', '18+']
 # IMAGES
 IMAGES = 'jpg jpe jpeg png gif svg bmp'.split()
 
-with open('admins.txt', 'r') as f:
-    ADMINS = [int(i.rstrip('\n')) for i in f.readlines() if i]
+with open('admins.txt', 'r') as admin_f:
+    ADMINS = [int(i.rstrip('\n')) for i in admin_f.readlines() if i]

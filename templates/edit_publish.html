@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block header2 %}
+<div class="header2-mini">
+    <h2 class="page-big-title-left">{{movie_title}}. Публикация</h2>
+    <p class="page-big-title-left-desc">Добавлено: {{publisher}}</p>
+</div>
+{% endblock %}
+
+{% block main %}
+    <div class="edit-data-back">
+        <input type="button" class="btn btn-secondary" onclick="location.href='/watch/{{movie_id}}';" value="<< Вернуться" />
+    </div>
+    <div class="edit-data">
+        <div class="flex-inline">
+            <form action="" method="post">
+                {{ form.hidden_tag() }}
+                {% if can_be_released %}
+                <p>{{ form.submit(type="submit", class="btn btn-success") }}</p>
+                {% else %}
+                <p>{{ form.submit(type="submit", class="btn btn-success", disabled="true") }}</p>
+                {% endif %}
+                <div>{{ message }}</div>
+            </form>
+        </div>
+        <h3>Условия для публикации</h3>
+        <table border="1" class="season-table">
+            <tr class="season-header">
+                {% for i in data %}
+                <td>{{i[0]}}</td>
+                {% endfor %}
+            </tr>
+            <tr class="series-data">
+                {% for i in data %}
+                    {% if i[1] == 2 %}
+                        <td class="series-data-yes season-table-big-font">+</td>
+                    {% elif i[1] == 1 %}
+                        <td class="series-data-yes">{{i[2]}}</td>
+                    {% elif i[1] == 0 %}
+                        <td class="series-data-no">{{i[2]}}</td>
+                    {% else %}
+                        <td class="series-data-no season-table-big-font">-</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        </table>
+    </div>
+{% endblock %}

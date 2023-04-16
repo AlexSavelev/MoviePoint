@@ -19,7 +19,7 @@ def generate_string(length=25):
 
 def get_lang_full_name(lang: str):
     if lang in LANG_MAP:
-        return LANG_MAP[lang]
+        return LANG_MAP[lang][0]
     return 'Undefined'
 
 
@@ -31,5 +31,12 @@ def find_series_by_id(series: str, seasons: dict) -> tuple:
     for season_title, season_it in seasons.items():
         for i in season_it:
             if i['id'] == series:
-                return season_title, i
+                return season_title, i.copy()
     return '', {}
+
+
+def change_series_json(season: str, series_id: str, new_data: dict, series_json: dict) -> dict:
+    for i in range(len(series_json['seasons'][season])):
+        if series_json['seasons'][season][i]['id'] == series_id:
+            series_json['seasons'][season][i] = new_data
+    return series_json
