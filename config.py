@@ -7,6 +7,8 @@ SITE_PATH = f'http://{HOST}:{PORT}'
 MEDIA_DATA_PATH = 'D:\\_Copies\\_HLS_SPLIT'
 MOVIE_PATH = '/static/movies'
 
+ENABLE_DATA_LOAD = True
+
 # Movie types:
 FULL_LENGTH = 'FL'
 SERIES = 'S'

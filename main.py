@@ -12,7 +12,7 @@ from requests import get, post, delete, put
 import json
 
 from data import users_resources, genres_resources, movies_resources, reviews_resources
-from data import movie_file_system
+from filesystem import movie_file_system
 
 from data.users import User
 
