@@ -216,7 +216,7 @@ def watch(movie_id):
 
     if movie['type'] == SERIES:
         movie_series = json.loads(movie['series'])['seasons']
-        seasons_titles = sorted(movie_series.keys())
+        seasons_titles = sorted(movie_series.keys(), key=sort_title_list_key)
         seasons = [
             {'name': season_title,
              'series': [
@@ -313,7 +313,7 @@ def edit_data(movie_id: int):
         return redirect(f'/watch/{movie_id}')
 
     series = json.loads(movie['series'])
-    seasons_titles = sorted(series['seasons'].keys())
+    seasons_titles = sorted(series['seasons'].keys(), key=sort_title_list_key)
     seasons = [(title, series['seasons'][title]) for title in seasons_titles]
 
     return render_template('edit_data.html', title='Серии', publisher=movie['user']['username'],
@@ -333,7 +333,7 @@ def edit_data_add(movie_id: int):
         return redirect(f'/watch/{movie_id}')
 
     series = json.loads(movie['series'])
-    seasons_titles = sorted(series['seasons'].keys())
+    seasons_titles = sorted(series['seasons'].keys(), key=sort_title_list_key)
 
     form = EditSeriesTitleForm()
     if form.validate_on_submit():
@@ -351,7 +351,7 @@ def edit_data_add(movie_id: int):
         series['seasons'][season].append({
             'id': series_id, 'title': title, 'video': 0, 'audio': [], 'subs': [], 'release': False
         })
-        series['seasons'][season].sort(key=lambda x: x['title'])
+        sort_series_list(series['seasons'][season])
         put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series)})
         movie_file_system.init_series(movie_id, series_id)
 
@@ -394,7 +394,7 @@ def edit_data_series_title(movie_id: int, series: str):
         return redirect(f'/watch/{movie_id}')
 
     series_json = json.loads(movie['series'])
-    seasons_titles = sorted(series_json['seasons'].keys())
+    seasons_titles = sorted(series_json['seasons'].keys(), key=sort_title_list_key)
     old_season, old_series_data = find_series_by_id(series, series_json['seasons'])
     if not old_series_data:
         abort(404)
@@ -423,7 +423,7 @@ def edit_data_series_title(movie_id: int, series: str):
         new_series_data = old_series_data.copy()
         new_series_data['title'] = title
         series_json['seasons'][season].append(new_series_data)
-        series_json['seasons'][season].sort(key=lambda x: x['title'])
+        sort_series_list(series_json['seasons'][season])
         put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
 
         return redirect(f'/edit/{movie_id}/data/{series}')
