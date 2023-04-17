@@ -779,6 +779,10 @@ def edit_publish(movie_id: int):
 
     form = EditPublishForm()
     if form.validate_on_submit():
+        if not can_be_released:
+            return render_template('edit_publish.html', title='Публикация', form=form, movie_title=movie['title'],
+                                   publisher=movie['user']['username'], movie_id=movie_id, data=fill_data,
+                                   can_be_released=can_be_released, message='Публикация невозможна!')
         put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'user_released': True})
         return redirect(f'/watch/{movie_id}')
 
