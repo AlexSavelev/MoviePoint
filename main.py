@@ -1,10 +1,9 @@
-import datetime
-
 from flask import Flask
 from flask import render_template, redirect, send_from_directory, request, session, abort
 from flask_restful import abort, Api
 from data.db_session import global_init, create_session
 import base64
+import datetime
 
 from misc import *
 
@@ -20,6 +19,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user
 from flask_login.utils import current_user
 
 from forms.user import LoginForm, RegisterForm
+from forms.genres import AddGenreForm
 from forms.edit import MyNewForm, EditCoverForm, EditImagesForm, EditMovieForm, EditPublishForm, EditSeriesTitleForm, \
     EditSeriesVideoForm, EditSeriesAudioForm, EditSeriesSubsForm
 
@@ -154,6 +154,40 @@ def search():
     return render_template('search.html', title='Поиск', not_found=nf, medias=medias, q=query_text)
 
 
+@app.route('/genres', methods=['GET', 'POST'])
+def genres():
+    if check_user_is_not_authorized('/genres'):
+        return redirect('/login')
+
+    genres_json = get(f'{SITE_PATH}/api/v1/genres').json()['genres']
+    user_is_admin = current_user.id in ADMINS
+
+    form = AddGenreForm()
+    if form.validate_on_submit():
+        title = form.title.data
+        if any([i['title'] == title for i in genres_json]):
+            return render_template('genres.html', title='Жанры', genres=genres_json, is_admin=user_is_admin,
+                                   form=form, message='Такой жанр уже существует')
+        post(f'{SITE_PATH}/api/v1/genres', json={'title': title})
+        return redirect('/genres')
+
+    return render_template('genres.html', title='Жанры', genres=genres_json, is_admin=user_is_admin, form=form)
+
+
+@app.route('/genres/remove/<int:genre_id>')
+def genres_remove(genre_id: int):
+    if check_user_is_not_authorized(f'/genres/remove/{genre_id}'):
+        return redirect('/login')
+
+    if current_user.id not in ADMINS:
+        abort(404)
+
+    result = delete(f'{SITE_PATH}/api/v1/genres/{genre_id}')
+    if not result:
+        return 'Ошибка. Жанр не найден.'
+    return redirect('/genres')
+
+
 @app.route('/static/movies/<string:movie_id>/<string:series_id>/<string:file_name>')
 def stream(movie_id, series_id, file_name):
     video_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
@@ -175,7 +209,7 @@ def watch(movie_id):
     if 'movie' not in movie:
         abort(404)
     movie = movie['movie']
-    is_editor = (movie['publisher'] == current_user.id) or is_admin(current_user.id)
+    is_editor = (movie['publisher'] == current_user.id) or (current_user.id in ADMINS)
     published = movie['user_released']
     if (not published) and (not is_editor):
         abort(404)
@@ -210,8 +244,6 @@ def watch(movie_id):
                    ('Жанры', movie['genres'], True), ('Возрастной рейтинг', movie['age'], True),
                    ('Описание', movie['description'], True)]
 
-    # month = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября',
-    # 'октября', 'ноября', 'декабря']
     return render_template('watch.html', title=f'Смотреть "{movie_title}"', movie_title=movie_title, movie_id=movie_id,
                            publisher=movie['user']['username'], additional_css_links=additional_css_links,
                            seasons=seasons, src=src, images=images, is_editor=is_editor, published=published,

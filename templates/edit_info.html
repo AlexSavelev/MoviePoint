@@ -39,7 +39,7 @@
             {% endfor %}
         </p>
         <p>
-            {{ form.genres.label }}<br>
+            {{ form.genres.label }}<a href="/genres" target="_blank" style="color: black!important; padding-left: 10px;">Добавить жанры</a><br>
             {{ form.genres(class="form-control", type="select", rows=10, multiple=True) }}<br>
             {% for error in form.genres.errors %}
                 <div class="alert alert-danger" role="alert">

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block header2 %}
+<div class="header2-mini">
+    <h2 class="page-big-title-left">Жанры</h2>
+    <p class="page-big-title-left-desc">После добавления жанра не забудьте обновить страницу с редактированием фильма</p>
+</div>
+{% endblock %}
+
+{% block main %}
+    <div class="edit-data">
+        <br><h3>Список жанров</h3>
+        <table border="1" class="season-table">
+            <tr class="season-header">
+                <td>№</td>
+                <td>Название</td>
+                {% if is_admin %}
+                <td>Управление</td>
+                {% endif %}
+            </tr>
+            {% for genre in genres %}
+            <tr class="series-data">
+                <td>{{genre.id}}</td>
+                <td>{{genre.title}}</td>
+                {% if is_admin %}
+                <td><button type="button" class="btn btn-danger" onclick="if(confirm('Вы уверены, что хотите сделать это?') == true){location.href='/genres/remove/{{genre.id}}';}">Удалить</button></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+        <hr>
+        <form action="" method="post">
+            {{ form.hidden_tag() }}
+            {{ form.title.label }}<br>
+            {{ form.title(class="form-control", placeholder="Название жанра") }}<br>
+            {% for error in form.title.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+            {% endfor %}
+            <p>{{ form.submit(type="submit", class="btn btn-success") }}</p>
+            <div>{{ message }}</div>
+        </form>
+    </div>
+{% endblock %}

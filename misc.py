@@ -23,10 +23,6 @@ def get_lang_full_name(lang: str):
     return 'Undefined'
 
 
-def is_admin(user_name: str) -> bool:
-    return user_name in ADMINS
-
-
 def find_series_by_id(series: str, seasons: dict) -> tuple:
     for season_title, season_it in seasons.items():
         for i in season_it:
