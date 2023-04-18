@@ -75,14 +75,29 @@ class MoviesSearch(Resource):
     def get(self):
         args = search_parser.parse_args()
         q = args['q'].lower() if args['q'] is not None else ''
+        w = args['w'].lower() if args['w'] is not None else 'название'
         must_be_released = args['must_be_released'] if args['must_be_released'] is not None else False
         publisher = args['publisher'] if args['publisher'] is not None else 0
         session = create_session()
         # movies = session.query(Movies).filter(Movies.title.ilike(f'%{args["q"].lower()}%')).all()
         movies = []
         for i in session.query(Movies).all():
-            if (not must_be_released or i.user_released) and \
-                    (q in i.title.lower()) and \
-                    (publisher == 0 or i.publisher == publisher):
-                movies.append(i)
-        return jsonify({'movies': [item.to_dict(only=('id', 'title', 'cover')) for item in movies]})
+            if w == 'название':
+                if (not must_be_released or i.user_released) and \
+                        (q in i.title.lower()) and \
+                        (publisher == 0 or i.publisher == publisher):
+                    movies.append(i)
+            elif w == 'режисёр':
+                if (not must_be_released or i.user_released) and \
+                        (q in i.director.lower()) and \
+                        (publisher == 0 or i.publisher == publisher):
+                    movies.append(i)
+            elif w == 'жанр':
+                for j in i.genres.split(','):
+                    print(j)
+                    if (not must_be_released or i.user_released) and \
+                            (q == (j)) and \
+                            (publisher == 0 or i.publisher == publisher):
+                        movies.append(i)
+                        break
+        return jsonify({'movies': [item.to_dict(only=('id', 'title', 'cover', 'genres', 'director')) for item in movies]})

@@ -6,6 +6,12 @@
 </div>
 <div class="search-mid-box">
     <form class="search-mid-form" method="GET" action="/search">
+        <label>Выберите категорию поиска</label>
+        <select id="selectvalue", name="w", value="{{ w }}">
+            <option>Название</option>
+            <option>Жанр</option>
+            <option>Режисёр</option>
+        </select>
         <input type="text" name="q" placeholder="Титаник" value="{{q}}">
         <button type="submit">
             <img src="/static/img/search.png.webp">
