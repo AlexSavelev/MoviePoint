@@ -150,4 +150,18 @@
             {% endif %}
         {% endfor %}
     </div>
+    <form action="" method="post" novalidate>
+        <div>
+            {{ review.csrf_token }}
+        </div>
+        {% for field in review if field.name != 'csrf_token' %}
+            <div>
+                {{ field.label() }}
+                {{ field() }}
+                {% for error in field.errors %}
+                    <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </form>
 {% endblock %}

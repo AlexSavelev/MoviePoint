@@ -1,6 +1,8 @@
 from flask import Flask
 from flask import render_template, redirect, send_from_directory, request, session, abort
 from flask_restful import abort, Api
+from flask_wtf import FlaskForm
+from wtforms import StringField
 from data.db_session import global_init, create_session
 import base64
 import datetime
@@ -14,6 +16,7 @@ from data import users_resources, genres_resources, movies_resources, reviews_re
 from filesystem import movie_file_system
 
 from data.users import User
+from data.reviews import Reviews
 
 from flask_login import LoginManager, login_user, login_required, logout_user
 from flask_login.utils import current_user
@@ -200,6 +203,10 @@ def stream_from_dir(movie_id, series_id, path, file_name):
     return send_from_directory(video_dir, file_name)
 
 
+class CommentForm(FlaskForm):
+    comment = StringField('Comment')
+
+
 @app.route('/watch/<int:movie_id>')
 def watch(movie_id):
     if check_user_is_not_authorized('/search'):
@@ -243,11 +250,22 @@ def watch(movie_id):
                    ('Режисёр', movie['director'], True), ('Страна', movie['country'], False),
                    ('Жанры', movie['genres'], True), ('Возрастной рейтинг', movie['age'], True),
                    ('Описание', movie['description'], True)]
+    comment = CommentForm()
+    db_sess = create_session()
+
+    if comment.comment.data not in ['', None]:
+        review = Reviews()
+        review.movie = movie['id']
+        review.publisher = current_user.username
+        review.rating = 5
+        review.review = comment.comment.data
+        db_sess.add(review)
+        db_sess.commit()
 
     return render_template('watch.html', title=f'Смотреть "{movie_title}"', movie_title=movie_title, movie_id=movie_id,
                            publisher=movie['user']['username'], additional_css_links=additional_css_links,
                            seasons=seasons, src=src, images=images, is_editor=is_editor, published=published,
-                           description=description)
+                           description=description, review=comment)
 
 
 @app.route('/my')
