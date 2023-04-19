@@ -6,11 +6,11 @@
 <p class="page-big-title-desc">Сайт создавался исключительно в образовательных целях.</p>
 <div class="search-big-box">
     <form class="search-big-form" method="GET" action="/search">
-        <label>Выберите категорию поиска</label>
-        <select id="selectvalue", name="w", value="{{ w }}">
+        <select name="w">
             <option>Название</option>
             <option>Жанр</option>
             <option>Режисёр</option>
+            <option>Возраст</option>
         </select>
         <input type="text" name="q" placeholder="Титаник">
         <button type="submit">

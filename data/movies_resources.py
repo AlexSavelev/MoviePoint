@@ -100,4 +100,9 @@ class MoviesSearch(Resource):
                             (publisher == 0 or i.publisher == publisher):
                         movies.append(i)
                         break
+            elif w == 'возраст':
+                if (not must_be_released or i.user_released) and \
+                        (q == i.age[0:-1]) and \
+                        (publisher == 0 or i.publisher == publisher):
+                    movies.append(i)
         return jsonify({'movies': [item.to_dict(only=('id', 'title', 'cover', 'genres', 'director')) for item in movies]})

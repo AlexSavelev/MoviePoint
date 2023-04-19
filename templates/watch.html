@@ -12,7 +12,7 @@
         <div class="movie-edit-block">
             <h2 class="page-mid-title">Редактор</h2>
             <div class="movie-edit-buttons-block">
-                {% if seasons %}
+                {% if type == 'S' %}
                     <input type="button" class="btn btn-primary" onclick="location.href='/edit/{{movie_id}}/data';" value="Серии" />
                 {% else %}
                     <input type="button" class="btn btn-primary" onclick="location.href='/edit/{{movie_id}}/data/0';" value="Фильм" />

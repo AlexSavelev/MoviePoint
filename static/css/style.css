@@ -111,6 +111,17 @@ ul.header-menu a {
     display: flex;
     flex-direction: row;
 }
+.search-big-form select {
+    background-color: #ffffff;
+    border-radius: 12px;
+    height: 60px;
+    border: none;
+    outline: none;
+    font-size: 22px;
+    width: 250px;
+    padding-left: 20px;
+    margin-right: 20px;
+}
 .search-big-form input {
     background-color: #ffffff;
     border-radius: 12px;
@@ -144,6 +155,17 @@ ul.header-menu a {
     flex-direction: row;
     width: 60%;
     margin: auto;
+}
+.search-mid-form select {
+    background-color: #ffffff;
+    border-radius: 12px;
+    height: 60px;
+    border: none;
+    outline: none;
+    font-size: 22px;
+    width: 250px;
+    padding-left: 20px;
+    margin-right: 20px;
 }
 .search-mid-form input {
     background-color: #ffffff;

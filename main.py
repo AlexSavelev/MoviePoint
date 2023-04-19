@@ -167,7 +167,9 @@ def search():
          'cover_ref': make_image_path(i['id'], i['cover'])
          } for i in medias]
 
-    return render_template('search.html', title='Поиск', not_found=nf, medias=medias, q=query_text0, w=categor)
+    filter_types = ['Название', 'Жанр', 'Режисёр', 'Возраст']
+    return render_template('search.html', title='Поиск', not_found=nf, medias=medias, q=query_text0, w=categor,
+                           filter_types=filter_types)
 
 
 @app.route('/genres', methods=['GET', 'POST'])
@@ -248,7 +250,10 @@ def watch(movie_id):
         if f'last_movie_series_{movie_id}' in request.cookies:
             src = request.cookies[f'last_movie_series_{movie_id}']
         else:
-            src = seasons[0]['series'][0]['ref']
+            if seasons and seasons[0]['series']:
+                src = seasons[0]['series'][0]['ref']
+            else:
+                src = ''
     else:
         seasons = []
         src = build_master_src(movie_id, '0')
@@ -256,9 +261,11 @@ def watch(movie_id):
     movie_title = movie['title']
     additional_css_links = ['/static/css/video-js.css', '/static/css/videojs-http-source-selector.css']
 
-    movie['world_release_date'] = datetime.date.fromisoformat(movie['world_release_date']).strftime('%d/%m/%Y')
+    movie['world_release_date'] = datetime.date.fromisoformat(movie['world_release_date']).strftime('%d/%m/%Y') \
+        if movie['world_release_date'] else ''
     movie['genres'] = ', '.join([get(f'{SITE_PATH}/api/v1/genres/{i}').json().
-                                get('genre', {}).get('title', '_') for i in movie['genres'].split(',')])
+                                get('genre', {}).get('title', '_') for i in movie['genres'].split(',')]) \
+        if movie['genres'] else ''
     description = [('Продолжительность', movie['duration'], False), ('Дата выхода', movie['world_release_date'], False),
                    ('Режисёр', movie['director'], True), ('Страна', movie['country'], False),
                    ('Жанры', movie['genres'], True), ('Возрастной рейтинг', movie['age'], True),
@@ -278,7 +285,7 @@ def watch(movie_id):
     return render_template('watch.html', title=f'Смотреть "{movie_title}"', movie_title=movie_title, movie_id=movie_id,
                            publisher=movie['user']['username'], additional_css_links=additional_css_links,
                            seasons=seasons, src=src, images=images, is_editor=is_editor, published=published,
-                           description=description, review=comment)
+                           description=description, review=comment, type=movie['type'])
 
 
 @app.route('/my')

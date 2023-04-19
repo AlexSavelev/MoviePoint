@@ -6,11 +6,14 @@
 </div>
 <div class="search-mid-box">
     <form class="search-mid-form" method="GET" action="/search">
-        <label>Выберите категорию поиска</label>
-        <select id="selectvalue", name="w", value="{{ w }}">
-            <option>Название</option>
-            <option>Жанр</option>
-            <option>Режисёр</option>
+        <select name="w" value="{{w}}">
+            {% for i in filter_types %}
+            {% if i == w %}
+            <option selected>{{i}}</option>
+            {% else %}
+            <option>{{i}}</option>
+            {% endif %}
+            {% endfor %}
         </select>
         <input type="text" name="q" placeholder="Титаник" value="{{q}}">
         <button type="submit">
