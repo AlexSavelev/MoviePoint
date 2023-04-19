@@ -20,6 +20,15 @@
                     </div>
                 {% endfor %}
                 </p>
+                <p>
+                {{ form.audio_lang.label }}<br>
+                {{ form.audio_lang(class="form-control", type="select") }}<br>
+                {% for error in form.audio_lang.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+                </p>
                 <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
                 <div>{{ message }}</div>
             </form>

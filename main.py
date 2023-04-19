@@ -495,7 +495,12 @@ def edit_data_series_video(movie_id: int, series: str):
     form = EditSeriesVideoForm()
     if form.validate_on_submit():
         data = form.content.data
-        result = movie_file_system.save_video(movie_id, series, data.filename.split('.')[-1], data)
+        audio_lang = form.audio_lang.data
+        if audio_lang == 'no':
+            result = movie_file_system.save_video(movie_id, series, data.filename.split('.')[-1], data)
+        else:
+            result = movie_file_system.save_video_and_audio_channel(movie_id, series, data.filename.split('.')[-1],
+                                                                    audio_lang, data)
         if not result:
             return render_template('edit_data_series_video.html', title='Загрузка видео',
                                    publisher=movie['user']['username'],
@@ -503,6 +508,8 @@ def edit_data_series_video(movie_id: int, series: str):
                                    message='Произошла ошибка в обработке файла')
 
         series_data['video'] = -1
+        if audio_lang != 'no':
+            series_data['audio'].append({'lang': audio_lang, 'state': -1})
         series_json = change_series_json(season, series, series_data, series_json)
         put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
 

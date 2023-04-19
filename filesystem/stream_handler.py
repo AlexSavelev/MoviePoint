@@ -77,6 +77,7 @@ def video(movie_id, series_id, ext, base_video_path, scales, bitrates):
     series_data['video'] = 1
     series_json = change_series_json(season, series_id, series_data, series_json)
     put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
+    return True
 
 
 def audio(movie_id, series_id, lang, ext, base_audio_path, bitrate):
@@ -128,6 +129,29 @@ def audio(movie_id, series_id, lang, ext, base_audio_path, bitrate):
     series_data['release'] = True
     series_json = change_series_json(season, series_id, series_data, series_json)
     put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
+    return True
+
+
+def video_and_audio(movie_id, series_id, ext, base_video_path, scales, bitrates,
+                    audio_lang, audio_ext, base_audio_path, audio_bitrate):
+    vr = video(movie_id, series_id, ext, base_video_path, scales, bitrates)
+    if not vr:
+        return False
+
+    command = f'"../../ffmpeg" -i src.{ext} -vn -acodec copy "{audio_lang}.{audio_ext}"'
+    bat_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
+    bat_path = f'{bat_dir}/conv_a.bat'
+    with open(bat_path, 'w') as f:
+        f.write(command)
+    p = subprocess.Popen(bat_path, shell=True, stdout=subprocess.PIPE, cwd=bat_dir)
+    stdout, stderr = p.communicate()
+    result = p.returncode
+    os.remove(bat_path)
+
+    if result != 0:
+        os.remove(base_audio_path)
+
+    return audio(movie_id, series_id, audio_lang, audio_ext, base_audio_path, audio_bitrate)
 
 
 def subs(movie_id, series_id, lang, length):

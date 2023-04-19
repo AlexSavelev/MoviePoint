@@ -5,7 +5,8 @@ import pipes
 import platform
 import re
 import subprocess
-import pathlib
+
+from config import MEDIA_DATA_PATH
 
 
 class FFProbeError(Exception):
@@ -28,7 +29,7 @@ class FFProbe:
                 cmd = ["ffprobe -show_streams " + pipes.quote(self.path_to_video)]
 
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True,
-                                 cwd=str(pathlib.Path(__file__).parent.resolve()))
+                                 cwd=MEDIA_DATA_PATH)
 
             stream = False
             self.streams = []

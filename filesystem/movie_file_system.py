@@ -1,5 +1,4 @@
 import os
-import subprocess
 import shutil
 import webvtt
 from multiprocessing import Process
@@ -76,6 +75,39 @@ def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, conte
         return False
 
     p1 = Process(target=stream_handler.audio, args=(movie_id, series_id, lang, ext, base_audio_path, bitrate))
+    p1.start()
+
+    return True
+
+
+def save_video_and_audio_channel(movie_id: int, series_id: str, ext: str, audio_lang: str, content):
+    audio_ext = 'aac'
+
+    os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/audio_{audio_lang}')
+    for stream in [0, 1, 2, 3]:
+        os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}')
+
+    base_video_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/src.{ext}'
+    base_audio_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/{audio_lang}.{audio_ext}'
+    content.save(base_video_path)
+
+    try:
+        metadata = FFProbe(base_video_path)
+        max_height = int(metadata.video[0].height)
+        max_bitrate = int(metadata.video[0].bit_rate) // 1000
+        audio_bitrate = int(metadata.audio[0].bit_rate) // 1000
+        if max_height < 100 or max_bitrate < 10 or audio_bitrate < 10:
+            raise ValueError
+    except:
+        return False
+
+    lower_k = [1, 1.5, 2.25, 2.25 * 1.333333]
+    scales = [int(max_height / k) for k in lower_k]
+    bitrates = [int(max_bitrate / k) for k in lower_k]
+
+    p1 = Process(target=stream_handler.video_and_audio,
+                 args=(movie_id, series_id, ext, base_video_path, scales, bitrates, audio_lang, audio_ext,
+                       base_audio_path, audio_bitrate))
     p1.start()
 
     return True

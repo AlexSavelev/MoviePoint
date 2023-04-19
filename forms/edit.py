@@ -58,6 +58,7 @@ class EditSeriesVideoForm(FlaskForm):
     content = FileField('Видео (mp4, h264)', validators=[FileRequired(), FileAllowed(['mp4', 'h264'],
                                                                                      f'Загружать можно ТОЛЬКО ВИДЕО '
                                                                                      f'форматов mp4, h264!')])
+    audio_lang = SelectField('Аудио', choices=[('no', 'Нет')] + [(i, j[1]) for i, j in LANG_MAP.items()])
     submit = SubmitField('Загрузить')
 
 
