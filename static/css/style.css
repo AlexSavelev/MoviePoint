@@ -190,6 +190,28 @@ ul.header-menu a {
     font-weight: 600;
     color: #1f1d22;
 }
+.sorted_action select{
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 2px solid #000000;
+    height: 40px;
+    outline: none;
+    font-size: 22px;
+    width: 300px;
+}
+.sorted_action button{
+    margin-left: 10px;
+    width: 166px;
+    height: 40px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 2px solid #000000;
+    outline: none;
+    cursor: pointer;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1f1d22;
+}
 
 
 .cloud

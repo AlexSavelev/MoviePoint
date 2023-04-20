@@ -26,6 +26,23 @@
 
 {% block main %}
 <div class="header2-content">
+    <div class="sorted_action">
+        <form class="sorted_action" method="GET" action="/search">
+            <label>Выбете критерий сортировки:</label>
+            <select name="sort">
+                    {% for i in sorted_type %}
+                    {% if i == sort %}
+                        <option selected>{{i}}</option>
+                    {% else %}
+                        <option>{{i}}</option>
+                    {% endif %}
+                    {% endfor %}
+            </select>
+            <button type="submit">
+                    Сортировать
+                </button>
+            </form>
+    </div>
     {% if not_found %}
     <div class="alert alert-info search-alert" role="alert"><p>Ничего не найдено.</p></div>
     {% endif %}

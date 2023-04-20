@@ -139,22 +139,18 @@ def register():
 def search():
     if check_user_is_not_authorized('/search'):
         return redirect('/login')
-    categor = request.args.get('w', default='', type=str)
-    query_text0 = request.args.get('q', default='', type=str)
-    query_text = query_text0
-    genres_json = get(f'{SITE_PATH}/api/v1/genres').json()['genres']
+
+    # Filter
+    category = request.args.get('w', default='', type=str)
+    query_text = request.args.get('q', default='', type=str)
+    if category == 'Жанр':
+        found_genres = [i['id'] for i in get(f'{SITE_PATH}/api/v1/genres').json()['genres']
+                        if i['title'].lower() == query_text.lower()]
+        query_text = found_genres[0] if found_genres else query_text
+
     nf = False
-    if categor == 'Жанр':
-        i = 0
-        while True:
-            if genres_json[i]['title'] in query_text0:
-                query_text = genres_json[i]['id']
-                break
-            i = i + 1
-            if len(genres_json) == i + 1:
-                break
     if query_text:
-        medias = get(f'{SITE_PATH}/api/v1/movies/search', json={'q': query_text, 'w': categor,
+        medias = get(f'{SITE_PATH}/api/v1/movies/search', json={'q': query_text, 'w': category,
                                                                 'must_be_released': True}).json()['movies']
         if not medias:
             nf = True
@@ -167,9 +163,12 @@ def search():
          'cover_ref': make_image_path(i['id'], i['cover'])
          } for i in medias]
 
+    # Sorting
+
+    sorted_type = ['Выберите...', 'По алфавиту', 'По рейтингу']
     filter_types = ['Название', 'Жанр', 'Режисёр', 'Возраст']
-    return render_template('search.html', title='Поиск', not_found=nf, medias=medias, q=query_text0, w=categor,
-                           filter_types=filter_types)
+    return render_template('search.html', title='Поиск', not_found=nf, medias=medias, q=query_text, w=category,
+                           filter_types=filter_types, sorted_type=sorted_type)
 
 
 @app.route('/genres', methods=['GET', 'POST'])
