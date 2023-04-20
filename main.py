@@ -143,6 +143,8 @@ def search():
     # Filter
     category = request.args.get('w', default='', type=str)
     query_text = request.args.get('q', default='', type=str)
+    sort_type = request.args.get('sort', default='', type=str)
+
     if category == 'Жанр':
         found_genres = [i['id'] for i in get(f'{SITE_PATH}/api/v1/genres').json()['genres']
                         if i['title'].lower() == query_text.lower()]
@@ -160,15 +162,21 @@ def search():
     medias = [
         {'title': i['title'],
          'watch_ref': f'/watch/{i["id"]}',
-         'cover_ref': make_image_path(i['id'], i['cover'])
+         'cover_ref': make_image_path(i['id'], i['cover']),
+         'rating': calculate_avg_rating(get(f'{SITE_PATH}/api/v1/reviews/search',
+                                            json={'movie': i['id']}).json()['reviews']),
          } for i in medias]
 
     # Sorting
+    if sort_type == 'По алфавиту':
+        medias.sort(key=lambda x: x['title'])
+    elif sort_type == 'По рейтингу':
+        medias.sort(key=lambda x: -x['rating'])
 
-    sorted_type = ['Выберите...', 'По алфавиту', 'По рейтингу']
+    sorted_types = ['Выберите...', 'По алфавиту', 'По рейтингу']
     filter_types = ['Название', 'Жанр', 'Режисёр', 'Возраст']
     return render_template('search.html', title='Поиск', not_found=nf, medias=medias, q=query_text, w=category,
-                           filter_types=filter_types, sorted_type=sorted_type)
+                           sort=sort_type, filter_types=filter_types, sorted_type=sorted_types)
 
 
 @app.route('/genres', methods=['GET', 'POST'])

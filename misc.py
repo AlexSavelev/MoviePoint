@@ -57,3 +57,9 @@ def change_series_json(season: str, series_id: str, new_data: dict, series_json:
         if series_json['seasons'][season][i]['id'] == series_id:
             series_json['seasons'][season][i] = new_data
     return series_json
+
+
+def calculate_avg_rating(ratings: list[dict]) -> float:
+    if not ratings:
+        return 0
+    return round(sum([i['rating'] for i in ratings]) / len(ratings), 2)

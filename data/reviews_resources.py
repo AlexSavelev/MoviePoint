@@ -46,7 +46,11 @@ class ReviewsListResource(Resource):
 
 
 class ReviewsSearch(Resource):
-    def post(self):
+    def get(self):
         args = search_parser.parse_args()
-        revs = create_session().query(Reviews).filter(Reviews.movie == args['movie']).all()
+        if args['publisher']:
+            revs = create_session().query(Reviews).filter(Reviews.movie == args['movie'],
+                                                          Reviews.publisher == args['publisher']).all()
+        else:
+            revs = create_session().query(Reviews).filter(Reviews.movie == args['movie']).all()
         return jsonify({'reviews': [item.to_dict() for item in revs]})
