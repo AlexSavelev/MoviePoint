@@ -65,6 +65,7 @@ class MoviesListResource(Resource):
         movie.series = args['series'] if args['series'] else ''
         movie.cover = args['cover'] if args['cover'] else ''
         movie.images = args['images'] if args['images'] else ''
+        movie.quiz = args['quiz'] if args['quiz'] else ''
 
         session.add(movie)
         session.commit()

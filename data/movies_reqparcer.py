@@ -15,6 +15,7 @@ parser.add_argument('user_released', required=False, type=bool)
 parser.add_argument('series', required=False)
 parser.add_argument('cover', required=False)
 parser.add_argument('images', required=False)
+parser.add_argument('quiz', required=False)
 
 search_parser = reqparse.RequestParser()
 search_parser.add_argument('q', required=False, type=str)

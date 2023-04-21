@@ -23,5 +23,6 @@ class Movies(SqlAlchemyBase, SerializerMixin):
     series = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     cover = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     images = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    quiz = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     user = orm.relationship('User')
