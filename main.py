@@ -1,8 +1,6 @@
 from flask import Flask
 from flask import render_template, redirect, send_from_directory, request, session, abort
 from flask_restful import abort, Api
-from flask_wtf import FlaskForm
-from wtforms import StringField
 from data.db_session import global_init, create_session
 import base64
 import datetime
@@ -16,13 +14,13 @@ from data import users_resources, genres_resources, movies_resources, reviews_re
 from filesystem import movie_file_system
 
 from data.users import User
-from data.reviews import Reviews
 
 from flask_login import LoginManager, login_user, login_required, logout_user
 from flask_login.utils import current_user
 
 from forms.user import LoginForm, RegisterForm
 from forms.genres import AddGenreForm
+from forms.comment import AddCommentForm
 from forms.edit import MyNewForm, EditCoverForm, EditImagesForm, EditMovieForm, EditPublishForm, EditSeriesTitleForm, \
     EditSeriesVideoForm, EditSeriesAudioForm, EditSeriesSubsForm
 
@@ -225,10 +223,6 @@ def stream_from_dir(movie_id, series_id, path, file_name):
     return send_from_directory(video_dir, file_name)
 
 
-class CommentForm(FlaskForm):
-    comment = StringField('Comment')
-
-
 @app.route('/watch/<int:movie_id>')
 def watch(movie_id):
     if check_user_is_not_authorized('/search'):
@@ -238,7 +232,8 @@ def watch(movie_id):
     if 'movie' not in movie:
         abort(404)
     movie = movie['movie']
-    is_editor = (movie['publisher'] == current_user.id) or (current_user.id in ADMINS)
+    is_publisher = movie['publisher'] == current_user.id
+    is_editor = is_publisher or (current_user.id in ADMINS)
     published = movie['user_released']
     if (not published) and (not is_editor):
         abort(404)
@@ -277,22 +272,17 @@ def watch(movie_id):
                    ('Режисёр', movie['director'], True), ('Страна', movie['country'], False),
                    ('Жанры', movie['genres'], True), ('Возрастной рейтинг', movie['age'], True),
                    ('Описание', movie['description'], True)]
-    comment = CommentForm()
-    db_sess = create_session()
 
-    if comment.comment.data not in ['', None]:
-        review = Reviews()
-        review.movie = movie['id']
-        review.publisher = current_user.username
-        review.rating = 5
-        review.review = comment.comment.data
-        db_sess.add(review)
-        db_sess.commit()
+    self_review = get(f'{SITE_PATH}/api/v1/reviews/search',
+                      json={'movie': movie_id, 'publisher': current_user.id}).json()['reviews']
+    reviews = [i for i in get(f'{SITE_PATH}/api/v1/reviews/search', json={'movie': movie_id}).json()['reviews']
+               if i['publisher'] != current_user.id][::-1]
 
     return render_template('watch.html', title=f'Смотреть "{movie_title}"', movie_title=movie_title, movie_id=movie_id,
                            publisher=movie['user']['username'], additional_css_links=additional_css_links,
-                           seasons=seasons, src=src, images=images, is_editor=is_editor, published=published,
-                           description=description, review=comment, type=movie['type'])
+                           type=movie['type'], seasons=seasons, src=src, images=images, is_editor=is_editor,
+                           published=published, description=description, is_publisher=is_publisher,
+                           self_review=self_review, reviews=reviews)
 
 
 @app.route('/my')

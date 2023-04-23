@@ -17,7 +17,8 @@ def abort_if_review_not_found(rev_id):
 class ReviewsResource(Resource):
     def get(self, rev_id):
         abort_if_review_not_found(rev_id)
-        rev = create_session().query(Reviews).get(rev_id)
+        db_sess = create_session()
+        rev = db_sess.query(Reviews).get(rev_id)
         return jsonify({'review': rev.to_dict()})
 
     def delete(self, rev_id):
@@ -31,7 +32,8 @@ class ReviewsResource(Resource):
 
 class ReviewsListResource(Resource):
     def get(self):
-        revs = create_session().query(Reviews).all()
+        db_sess = create_session()
+        revs = db_sess.query(Reviews).all()
         return jsonify({'reviews': [item.to_dict() for item in revs]})
 
     def post(self):
@@ -48,9 +50,10 @@ class ReviewsListResource(Resource):
 class ReviewsSearch(Resource):
     def get(self):
         args = search_parser.parse_args()
+        db_sess = create_session()
         if args['publisher']:
-            revs = create_session().query(Reviews).filter(Reviews.movie == args['movie'],
-                                                          Reviews.publisher == args['publisher']).all()
+            revs = db_sess.query(Reviews).filter(Reviews.movie == args['movie'],
+                                                 Reviews.publisher == args['publisher']).all()
         else:
-            revs = create_session().query(Reviews).filter(Reviews.movie == args['movie']).all()
+            revs = db_sess.query(Reviews).filter(Reviews.movie == args['movie']).all()
         return jsonify({'reviews': [item.to_dict() for item in revs]})

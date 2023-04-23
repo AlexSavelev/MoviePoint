@@ -150,4 +150,31 @@
             {% endif %}
         {% endfor %}
     </div>
+    <div class="movie-comments-block">
+        <h2 class="page-mid-title">Рецензии</h2>
+        {% if self_review %}
+        <div class="movie-comment movie-self-comment">
+            <p class="movie-comment-rating">{{self_review.rating}}/10</p>
+            <p class="movie-comment-title">{{self_review.title}}</p>
+            <p class="movie-comment-review">{{self_review.review}}</p>
+            <div class="flex-inline">
+                <button onclick="location.href='/reviews/{{self_review.id}}/edit'" type="button" class="btn btn-primary">Изменить</button>
+                <button type="button" class="btn btn-danger" onclick="if(confirm('Вы уверены, что хотите сделать это?') == true){location.href='/reviews/{{self_review.id}}/remove';}">Удалить</button>
+            </div>
+        </div>
+        {% elif not is_publisher %}
+        <button onclick="location.href='/reviews/add/{{movie_id}}'" type="button" class="btn btn-success">Добавить</button>
+        {% endif %}
+        {% for review in reviews %}
+            <div class="movie-comment movie-self-comment">
+                <p class="movie-comment-rating">{{review.rating}}/10</p>
+                <p class="movie-comment-title">{{review.title}}</p>
+                <p class="movie-comment-review">{{review.review}}</p>
+                <div class="flex-inline">
+                    <button onclick="location.href='/reviews/{{review.id}}/edit'" type="button" class="btn btn-primary">Изменить</button>
+                    <button type="button" class="btn btn-danger" onclick="if(confirm('Вы уверены, что хотите сделать это?') == true){location.href='/reviews/{{review.id}}/remove';}">Удалить</button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 {% endblock %}
