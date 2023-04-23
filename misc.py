@@ -61,5 +61,11 @@ def change_series_json(season: str, series_id: str, new_data: dict, series_json:
 
 def calculate_avg_rating(ratings: list[dict]) -> float:
     if not ratings:
-        return 0
+        return 0.0
     return round(sum([i['rating'] for i in ratings]) / len(ratings), 2)
+
+
+def build_streams_list(height: int) -> list[tuple]:
+    if height not in RESOLUTIONS:
+        return [(i, int(height / k)) for i, k in enumerate([1, 1.5, 2.25, 2.25 * 1.333333])]
+    return [(i, s) for i, s in enumerate(RESOLUTIONS[RESOLUTIONS.index(height):])]

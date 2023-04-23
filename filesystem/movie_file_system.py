@@ -35,9 +35,6 @@ def remove_image(movie_id: int, filename: str):
 
 
 def save_video(movie_id: int, series_id: str, ext: str, content):  # h264/mp4
-    for stream in [0, 1, 2, 3]:
-        os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}')
-
     base_video_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/src.{ext}'
     content.save(base_video_path)
 
@@ -48,13 +45,17 @@ def save_video(movie_id: int, series_id: str, ext: str, content):  # h264/mp4
         if max_height < 100 or max_bitrate < 10:
             raise ValueError
     except:
+        os.remove(base_video_path)
         return False
 
-    lower_k = [1, 1.5, 2.25, 2.25 * 1.333333]
-    scales = [int(max_height / k) for k in lower_k]
-    bitrates = [int(max_bitrate / k) for k in lower_k]
+    streams = build_streams_list(max_height)
+    lower_2p_k = [(max_height / i) ** 2 for i in map(lambda x: x[1], streams)]
+    bitrates = [int(max_bitrate / k) for k in lower_2p_k]
 
-    p1 = Process(target=stream_handler.video, args=(movie_id, series_id, ext, base_video_path, scales, bitrates))
+    for stream in streams:
+        os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream[0]}')
+
+    p1 = Process(target=stream_handler.video, args=(movie_id, series_id, ext, base_video_path, streams, bitrates))
     p1.start()
 
     return True
@@ -83,10 +84,6 @@ def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, conte
 def save_video_and_audio_channel(movie_id: int, series_id: str, ext: str, audio_lang: str, content):
     audio_ext = 'aac'
 
-    os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/audio_{audio_lang}')
-    for stream in [0, 1, 2, 3]:
-        os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}')
-
     base_video_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/src.{ext}'
     base_audio_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/{audio_lang}.{audio_ext}'
     content.save(base_video_path)
@@ -99,14 +96,19 @@ def save_video_and_audio_channel(movie_id: int, series_id: str, ext: str, audio_
         if max_height < 100 or max_bitrate < 10 or audio_bitrate < 10:
             raise ValueError
     except:
+        os.remove(base_video_path)
         return False
 
-    lower_k = [1, 1.5, 2.25, 2.25 * 1.333333]
-    scales = [int(max_height / k) for k in lower_k]
-    bitrates = [int(max_bitrate / k) for k in lower_k]
+    streams = build_streams_list(max_height)
+    lower_2p_k = [(max_height / i) ** 2 for i in map(lambda x: x[1], streams)]
+    bitrates = [int(max_bitrate / k) for k in lower_2p_k]
+
+    os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/audio_{audio_lang}')
+    for stream in streams:
+        os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream[0]}')
 
     p1 = Process(target=stream_handler.video_and_audio,
-                 args=(movie_id, series_id, ext, base_video_path, scales, bitrates, audio_lang, audio_ext,
+                 args=(movie_id, series_id, ext, base_video_path, streams, bitrates, audio_lang, audio_ext,
                        base_audio_path, audio_bitrate))
     p1.start()
 

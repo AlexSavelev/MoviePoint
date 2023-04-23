@@ -87,7 +87,7 @@
             qualityLevels.on('addqualitylevel', function(event) {
                 let qualityLevel = event.qualityLevel;
 
-                if (qualityLevel.height >= 800) {
+                if (qualityLevels.length <= 1) {
                     qualityLevel.enabled = true;
                 } else {
                     qualityLevel.enabled = false;

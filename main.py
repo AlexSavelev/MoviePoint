@@ -633,6 +633,10 @@ def edit_data_series_remove(movie_id: int, series: str):
 
     for i in range(len(series_json['seasons'][season])):
         if series_json['seasons'][season][i]['id'] == series:
+            t = series_json['seasons'][season][i]
+            if t['video'] == -1 or any([i['state'] == -1 for i in t['audio']]) or \
+                    any([i['state'] == -1 for i in t['subs']]):
+                return '<h1>Отказано! В данный момент идет обработка видео!</h1>'
             series_json['seasons'][season].pop(i)
             break
     if not series_json['seasons'][season]:

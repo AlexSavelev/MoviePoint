@@ -32,15 +32,17 @@ def add_param_to_streams(master_path: str, param: str):
         f.writelines(data)
 
 
-def video(movie_id, series_id, ext, base_video_path, scales, bitrates):
+def video(movie_id, series_id, ext, base_video_path, streams, bitrates):
     series_json = json.loads(get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()['movie']['series'])
     season, series_data = find_series_by_id(series_id, series_json['seasons'])
 
-    command = f'"../../ffmpeg" -y -i src.{ext} -hls_time 8 -hls_list_size 0 -filter:v:0 scale=-2:{scales[0]} ' \
-              f'-filter:v:1 scale=-2:{scales[1]} -filter:v:2 scale=-2:{scales[2]} ' \
-              f'-filter:v:3 scale=-2:{scales[3]} -b:v:0 {bitrates[0]}k -b:v:1 {bitrates[1]}k ' \
-              f'-b:v:2 {bitrates[2]}k -b:v:3 {bitrates[3]}k -map 0:v -map 0:v -map 0:v -map 0:v ' \
-              f'-var_stream_map "v:0 v:1 v:2 v:3" -master_pl_name master.m3u8 ' \
+    print(f'[video handler] starting with streams: {streams} and bitrates {bitrates}')
+
+    command = f'"../../ffmpeg" -y -i src.{ext} -hls_time 8 -hls_list_size 0 ' \
+              f'{" ".join([f"-filter:v:{stream[0]} scale=-2:{stream[1]}" for stream in streams])} ' \
+              f'{" ".join([f"-b:v:{stream[0]} {b}k" for stream, b in zip(streams, bitrates)])} ' \
+              f'{" ".join([f"-map 0:v"] * len(streams))} ' \
+              f'-var_stream_map "{" ".join([f"v:{stream[0]}" for stream in streams])}" -master_pl_name master.m3u8 ' \
               f'-hls_segment_filename stream_%%v/data%%04d.ts stream_%%v.m3u8'
     bat_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
     bat_path = f'{bat_dir}/v.bat'
@@ -58,10 +60,10 @@ def video(movie_id, series_id, ext, base_video_path, scales, bitrates):
             os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/master.m3u8')
         except OSError:
             pass
-        for stream in [0, 1, 2, 3]:
-            shutil.rmtree(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}')
+        for stream in streams:
+            shutil.rmtree(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream[0]}')
             try:
-                os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}.m3u8')
+                os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream[0]}.m3u8')
             except OSError:
                 pass
 
@@ -70,9 +72,9 @@ def video(movie_id, series_id, ext, base_video_path, scales, bitrates):
         put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
         return False
 
-    for stream in [0, 1, 2, 3]:
-        replace_ts_dirs(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream}.m3u8',
-                        'data', f'stream_{stream}/data')
+    for stream in streams:
+        replace_ts_dirs(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/stream_{stream[0]}.m3u8',
+                        'data', f'stream_{stream[0]}/data')
 
     series_data['video'] = 1
     series_json = change_series_json(season, series_id, series_data, series_json)
@@ -132,9 +134,9 @@ def audio(movie_id, series_id, lang, ext, base_audio_path, bitrate):
     return True
 
 
-def video_and_audio(movie_id, series_id, ext, base_video_path, scales, bitrates,
+def video_and_audio(movie_id, series_id, ext, base_video_path, streams, bitrates,
                     audio_lang, audio_ext, base_audio_path, audio_bitrate):
-    vr = video(movie_id, series_id, ext, base_video_path, scales, bitrates)
+    vr = video(movie_id, series_id, ext, base_video_path, streams, bitrates)
     if not vr:
         return False
 
@@ -150,6 +152,7 @@ def video_and_audio(movie_id, series_id, ext, base_video_path, scales, bitrates,
 
     if result != 0:
         os.remove(base_audio_path)
+        return False
 
     return audio(movie_id, series_id, audio_lang, audio_ext, base_audio_path, audio_bitrate)
 
