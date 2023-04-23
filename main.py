@@ -638,6 +638,8 @@ def edit_data_series_remove(movie_id: int, series: str):
     if not series_json['seasons'][season]:
         series_json['seasons'].pop(season)
     put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
+    if not series_json['seasons']:
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'user_released': False})
     movie_file_system.remove_series(movie_id, series)
 
     return redirect(f'/edit/{movie_id}/data')
