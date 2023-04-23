@@ -13,6 +13,8 @@ ENABLE_DATA_LOAD = True
 FULL_LENGTH = 'FL'
 SERIES = 'S'
 
+MAX_MOVIE_COUNT = 20
+
 # Languages
 LANG_MAP = {'ru': ('Russian', 'Русский'), 'en': ('English', 'Английский')}
 # Ages

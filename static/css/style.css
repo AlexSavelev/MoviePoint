@@ -651,3 +651,20 @@ ul.footer-menu li {
 .movie-comment-review {
     font-size: 1rem;
 }
+
+.search-page-container {
+    margin: auto;
+    display: flex;
+    flex-direction: row;
+}
+
+.search-page-box {
+    margin: 10px;
+    padding: 10px;
+    font-size: 15pt;
+    padding: auto;
+    text-align: center;
+    color: #333333;
+    border: 1px solid #333333;
+    border-radius: 10px;
+}
