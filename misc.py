@@ -3,11 +3,11 @@ from config import *
 
 
 def make_image_path(movie_id, image):
-    return f'{MOVIE_PATH}/{movie_id}/img/{image}'
+    return f'/static/movies/{movie_id}/img/{image}'
 
 
 def build_master_src(movie_id, series_id):
-    return f'{MOVIE_PATH}/{movie_id}/{series_id}/master.m3u8'
+    return f'/static/movies/{movie_id}/{series_id}/master.m3u8'
 
 
 def generate_string(length=25):
