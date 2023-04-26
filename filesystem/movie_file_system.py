@@ -1,6 +1,7 @@
 import os
 import shutil
 import webvtt
+import subprocess
 from multiprocessing import Process
 
 from misc import *
@@ -34,9 +35,36 @@ def remove_image(movie_id: int, filename: str):
     os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/img/{filename}')
 
 
-def save_video(movie_id: int, series_id: str, ext: str, content):  # h264/mp4
+def save_video(movie_id: int, series_id: str, ext: str, content, **kwargs):  # h264/mp4/mkv
     base_video_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/src.{ext}'
     content.save(base_video_path)
+
+    if ext == 'mkv':
+        print('[SAVE VIDEO] Converting MKV to MP4 - START')
+
+        codec = kwargs['codec']
+
+        if codec == 'h264':
+            command = f'"../../ffmpeg" -i src.mkv -c:v copy -c:a aac src.mp4'
+        else:
+            command = f'"../../ffmpeg" -i src.mkv -c:v libx264 -c:a aac src.mp4'
+        bat_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
+        bat_path = f'{bat_dir}/mkv_conv.bat'
+        with open(bat_path, 'w') as f:
+            f.write(command)
+        p = subprocess.Popen(bat_path, shell=True, stdout=subprocess.PIPE, cwd=bat_dir)
+        stdout, stderr = p.communicate()
+        result = p.returncode
+        os.remove(bat_path)
+
+        if result != 0:
+            os.remove(base_video_path)
+            print('[SAVE VIDEO] Converting MKV to MP4 - FAIL')
+            return False
+
+        ext = 'mp4'
+        base_video_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/src.{ext}'
+        print('[SAVE VIDEO] Converting MKV to MP4 - SUCCESS')
 
     try:
         metadata = FFProbe(base_video_path)
@@ -81,7 +109,7 @@ def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, conte
     return True
 
 
-def save_video_and_audio_channel(movie_id: int, series_id: str, ext: str, audio_lang: str, content):
+def save_video_and_audio_channel(movie_id: int, series_id: str, ext: str, audio_lang: str, content, **kwargs):
     audio_ext = 'aac'
 
     base_video_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/src.{ext}'

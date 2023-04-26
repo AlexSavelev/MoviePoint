@@ -8,6 +8,23 @@
 {% endblock %}
 
 {% block main %}
+<script>
+function check() {
+    oInput = document.getElementById("content");
+    var sFileName = oInput.value;
+    console.log(sFileName);
+    if (sFileName.length > 0) {
+        var ext = sFileName.split('.').pop();
+        if(ext == "mkv") {
+            document.getElementById("codec_block").style.display = 'block';
+        } else {
+            document.getElementById("codec_block").style.display = 'none';
+        }
+    } else {
+        document.getElementById("codec_block").style.display = 'none';
+    }
+}
+</script>
 <div class="edit-images-load-block">
             <form action="" method="post" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
@@ -15,6 +32,15 @@
                 {{ form.content.label }}<br>
                 {{ form.content(class="form-control", type="file") }}<br>
                 {% for error in form.content.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+                </p>
+                <p id="codec_block">
+                {{ form.codec.label }}<br>
+                {{ form.codec(class="form-control", type="select") }}<br>
+                {% for error in form.codec.errors %}
                     <div class="alert alert-danger" role="alert">
                         {{ error }}
                     </div>
@@ -32,5 +58,9 @@
                 <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
                 <div>{{ message }}</div>
             </form>
+            <script>
+                document.getElementById("content").onchange = function(){check();};
+                check();
+            </script>
 </div>
 {% endblock %}

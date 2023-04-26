@@ -1,11 +1,11 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, SelectField, SelectMultipleField, SubmitField, \
-    FileField, MultipleFileField, DateField, TextAreaField
+    FileField, MultipleFileField, DateField, TextAreaField, IntegerField
 from wtforms.validators import DataRequired
 
 from requests import get
-from config import SITE_PATH, FULL_LENGTH, SERIES, AGES, IMAGES, LANG_MAP
+from config import SITE_PATH, FULL_LENGTH, SERIES, AGES, IMAGES, LANG_MAP, CODECS
 
 
 class MyNewForm(FlaskForm):
@@ -55,9 +55,13 @@ class EditSeriesTitleForm(FlaskForm):
 
 
 class EditSeriesVideoForm(FlaskForm):
-    content = FileField('Видео (mp4, h264)', validators=[FileRequired(), FileAllowed(['mp4', 'h264'],
-                                                                                     f'Загружать можно ТОЛЬКО ВИДЕО '
-                                                                                     f'форматов mp4, h264!')])
+    content = FileField('Видео (mp4, h264, mkv (с кодеком h264))',
+                        validators=[FileRequired(), FileAllowed(['mp4', 'h264', 'mkv'],
+                                                                f'Загружать можно ТОЛЬКО ВИДЕО '
+                                                                f'форматов mp4, h264, mkv!')])
+    codec = SelectField('Установленный кодек',
+                        choices=[('auto', 'Авто')] + [(i, i.upper()) for i in CODECS])
+    audio_bitrate = IntegerField('Битрейт аудио (kbps)')
     audio_lang = SelectField('Аудио', choices=[('no', 'Нет')] + [(i, j[1]) for i, j in LANG_MAP.items()])
     submit = SubmitField('Загрузить')
 

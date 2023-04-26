@@ -27,6 +27,8 @@ AGES = ['0+', '6+', '12+', '16+', '18+']
 IMAGES = ['jpg', 'jpe', 'jpeg', 'png', 'gif', 'svg', 'bmp']
 # Resolutions
 RESOLUTIONS = [4320, 2160, 1440, 1080, 720, 480, 360]
+# Codecs
+CODECS = ['h264/aac', 'h264/flac', 'h264/other', 'h265', 'hvc', 'xc']
 
 with open('admins.txt', 'r') as admin_f:
     ADMINS = [int(i.rstrip('\n')) for i in admin_f.readlines() if i]
