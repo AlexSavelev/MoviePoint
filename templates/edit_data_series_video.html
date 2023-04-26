@@ -12,7 +12,6 @@
 function check() {
     oInput = document.getElementById("content");
     var sFileName = oInput.value;
-    console.log(sFileName);
     if (sFileName.length > 0) {
         var ext = sFileName.split('.').pop();
         if(ext == "mkv") {
@@ -22,6 +21,15 @@ function check() {
         }
     } else {
         document.getElementById("codec_block").style.display = 'none';
+    }
+}
+function check1() {
+    oInput = document.getElementById("audio_lang");
+    var sQ = oInput.value;
+    if(sq == "no") {
+        document.getElementById("audio_bitrate_block").style.display = 'none';
+    } else {
+        document.getElementById("audio_bitrate_block").style.display = 'block';
     }
 }
 </script>
@@ -55,12 +63,23 @@ function check() {
                     </div>
                 {% endfor %}
                 </p>
+                <p id="audio_bitrate_block">
+                {{ form.audio_bitrate.label }}<br>
+                {{ form.audio_bitrate(class="form-control", type="number") }}<br>
+                {% for error in form.audio_bitrate.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+                </p>
                 <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
                 <div>{{ message }}</div>
             </form>
             <script>
                 document.getElementById("content").onchange = function(){check();};
+                document.getElementById("audio_lang").onchange = function(){check1();};
                 check();
+                check1();
             </script>
 </div>
 {% endblock %}
