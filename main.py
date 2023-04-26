@@ -230,6 +230,34 @@ def stream_from_dir(movie_id, series_id, path, file_name):
     return send_from_directory(video_dir, file_name)
 
 
+@app.route('/reviews/add/<int:movie_id>', methods=['GET', 'POST'])
+def review_add(movie_id):
+    if check_user_is_not_authorized('/reviews/add/<int:movie_id>'):
+        return redirect('/login')
+
+    movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
+
+    if 'movie' not in movie:
+        abort(404)
+
+    movie = movie['movie']
+    movie_title = movie['title']
+    is_publisher = movie['publisher'] == current_user.id
+
+    if is_publisher:
+        abort(404)
+
+    form = AddCommentForm()
+    if form.validate_on_submit():
+        post(f'{SITE_PATH}/api/v1/reviews', json={'movie': movie_id,
+                                                  'publisher': current_user.id,
+                                                  'rating': int(form.rating.data),
+                                                  'title': form.title.data,
+                                                  'review': form.review.data})
+        return redirect(f'/reviews/add/{movie_id}')
+    return render_template('write_review.html', title='Комментарий', form=form, movie_title=movie_title)
+
+
 @app.route('/watch/<int:movie_id>')
 def watch(movie_id):
     if check_user_is_not_authorized('/search'):
