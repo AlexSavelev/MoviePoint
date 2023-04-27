@@ -154,12 +154,12 @@
         <h2 class="page-mid-title">Рецензии</h2>
         {% if self_review %}
         <div class="movie-comment movie-self-comment">
-            <p class="movie-comment-rating">{{self_review.rating}}/10</p>
-            <p class="movie-comment-title">{{self_review.title}}</p>
-            <p class="movie-comment-review">{{self_review.review}}</p>
+            <p class="movie-comment-rating">{{self_review[0].rating}}/10</p>
+            <p class="movie-comment-title">{{self_review[0].title}}</p>
+            <p class="movie-comment-review">{{self_review[0].review}}</p>
             <div class="flex-inline">
-                <button onclick="location.href='/reviews/{{self_review.id}}/edit'" type="button" class="btn btn-primary">Изменить</button>
-                <button type="button" class="btn btn-danger" onclick="if(confirm('Вы уверены, что хотите сделать это?') == true){location.href='/reviews/{{self_review.id}}/remove';}">Удалить</button>
+                <button onclick="location.href='/reviews/{{self_review[0].id}}/edit'" type="button" class="btn btn-primary">Изменить</button>
+                <button type="button" class="btn btn-danger" onclick="if(confirm('Вы уверены, что хотите сделать это?') == true){location.href='/reviews/{{self_review[0].id}}/remove';}">Удалить</button>
             </div>
         </div>
         {% elif not is_publisher %}

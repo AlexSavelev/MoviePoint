@@ -1,12 +1,8 @@
 import os
 import subprocess
 import shutil
-from pathlib import Path
 from requests import get, put
 import json
-import pysubs2
-import webvtt
-from filesystem.ffprobe import FFProbe, FFProbeError
 
 from misc import *
 
@@ -36,7 +32,7 @@ def add_param_to_streams(master_path: str, param: str):
         f.writelines(data)
 
 
-def video(movie_id, series_id, ext, base_video_path, streams, bitrates, extra_cmd_arg=''):
+def video(movie_id, series_id, ext, base_video_path, streams, bitrates):
     print(f'[video handler] starting with streams: {streams} and bitrates {bitrates}')
 
     command = f'"../../ffmpeg" -y -i src.{ext} -hls_time 8 -hls_list_size 0 ' \
@@ -44,7 +40,7 @@ def video(movie_id, series_id, ext, base_video_path, streams, bitrates, extra_cm
               f'{" ".join([f"-b:v:{stream[0]} {b}k" for stream, b in zip(streams, bitrates)])} ' \
               f'{" ".join([f"-map 0:v"] * len(streams))} ' \
               f'-var_stream_map "{" ".join([f"v:{stream[0]}" for stream in streams])}" -master_pl_name master.m3u8 ' \
-              f'{extra_cmd_arg}-hls_segment_filename stream_%%v/data%%04d.ts stream_%%v.m3u8'
+              f'-hls_segment_filename stream_%%v/data%%04d.ts stream_%%v.m3u8'
     bat_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
     bat_path = f'{bat_dir}/v.bat'
     with open(bat_path, 'w') as f:
@@ -187,153 +183,3 @@ def subs(movie_id, series_id, lang, length):
             break
     series_json = change_series_json(season, series_id, series_data, series_json)
     put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
-
-
-def mkv(movie_id, series_id, base_mkv_path, tracks):
-    tracks['video'][0]['fname'] = f'v.{tracks["video"][0]["ext"]}'
-    for t in tracks['audio']:
-        t['fname'] = f'{t["lang"]}.{t["ext"]}'
-    for t in tracks['subs']:
-        t['fname'] = f'{t["lang"]}.{t["ext"]}'
-
-    tracks_cp = " ".join(
-        [f'{track["id"]}:{track["fname"]}' for track in (tracks["video"] + tracks["audio"] + tracks["subs"])]
-    )
-
-    print(f'[MKV] State 0 - EXTRACT')
-    command = f'"../../mkvextract" src.mkv tracks {tracks_cp}'
-    bat_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
-    bat_path = f'{bat_dir}/mkv_extract.bat'
-    with open(bat_path, 'w') as f:
-        f.write(command)
-    p = subprocess.Popen(bat_path, shell=True, stdout=subprocess.PIPE, cwd=bat_dir)
-    stdout, stderr = p.communicate()
-    result = p.returncode
-    os.remove(bat_path)
-
-    if result != 0:
-        print('[MKV] Fail on state 0')
-        os.remove(base_mkv_path)
-        series_json = json.loads(get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()['movie']['series'])
-        season, series_data = find_series_by_id(series_id, series_json['seasons'])
-        series_data['video'] = 0
-        series_json = change_series_json(season, series_id, series_data, series_json)
-        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
-        return False
-
-    base_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
-
-    print(f'[MKV] State 1 - VIDEO INFO')
-
-    t = f'{base_dir}/{tracks["video"][0]["fname"]}'
-    try:
-        metadata = FFProbe(t)
-        framerate = int(metadata.video[0].framerate)
-        if framerate < 1:
-            raise ValueError
-    except (IOError, FFProbeError, ValueError):
-        print('[MKV] Fail on state 1')
-        os.remove(t)
-        series_json = json.loads(get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()['movie']['series'])
-        season, series_data = find_series_by_id(series_id, series_json['seasons'])
-        series_data['video'] = 0
-        series_json = change_series_json(season, series_id, series_data, series_json)
-        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
-        return False
-
-    command = f'"../../ffmpeg" -i {tracks["video"][0]["fname"]} -map 0 -c:v libx264 -crf 5 ' \
-              f'-vframes {framerate} src.h264'
-    bat_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
-    bat_path = f'{bat_dir}/video_h264.bat'
-    with open(bat_path, 'w') as f:
-        f.write(command)
-    p = subprocess.Popen(bat_path, shell=True, stdout=subprocess.PIPE, cwd=bat_dir)
-    stdout, stderr = p.communicate()
-    result = p.returncode
-    os.remove(bat_path)
-
-    series_json = json.loads(get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()['movie']['series'])
-    season, series_data = find_series_by_id(series_id, series_json['seasons'])
-
-    if result != 0:
-        print('[MKV] Fail on state 0')
-        os.remove(base_mkv_path)
-        series_data['video'] = 0
-        series_json = change_series_json(season, series_id, series_data, series_json)
-        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
-        return False
-
-    tracks["video"][0]["fname"] = 'src.h264'
-    base_video_path = f'{base_dir}/src.h264'
-    try:
-        metadata = FFProbe(base_video_path)
-        max_height = int(metadata.video[0].height)
-        max_bitrate = metadata.video[0].bit_rate
-        # max_bitrate = int(metadata.video[0].bit_rate) // 1000
-        if not max_bitrate.isdigit() or int(max_bitrate) == 0:
-            max_bitrate = (Path(base_video_path).stat().st_size * 8 // tracks["video"][0]['duration']) // 1000
-        else:
-            max_bitrate = int(max_bitrate) // 1000
-        if max_height < 300 or max_bitrate < 10:
-            raise ValueError
-    except (IOError, FFProbeError, ValueError):
-        print('[MKV] Fail on state 1')
-        os.remove(base_video_path)
-        series_data['video'] = 0
-        series_json = change_series_json(season, series_id, series_data, series_json)
-        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
-        return False
-
-    streams = build_streams_list(max_height)
-    lower_2p_k = [(max_height / i) ** 2 for i in map(lambda x: x[1], streams)]
-    bitrates = [int(max_bitrate / k) for k in lower_2p_k]
-    for stream in streams:
-        os.mkdir(f'{base_dir}/stream_{stream[0]}')
-
-    print(f'[MKV] State 2 - AUDIO INFO')
-    for t in tracks['audio']:
-        os.mkdir(f'{base_dir}/audio_{t["lang"]}')
-
-    print(f'[MKV] State 3 - SUBS INFO')
-    for t in tracks['subs']:
-        ext = t['ext']
-        fname = t['fname']
-        f_path = f'{base_dir}/{fname}'
-        r_path = f'{base_dir}/subs/{t["lang"]}.vtt'
-        if ext == 'vtt':
-            os.rename(f_path, r_path)
-        else:
-            temp_subs = pysubs2.load(f_path, encoding='utf-8')
-            temp_subs.save(r_path)
-            os.remove(f_path)
-        t['length'] = webvtt.read(r_path).total_length
-
-    print(f'[MKV] State 4 - ADD SERIES INFO')
-    series_json = json.loads(get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()['movie']['series'])
-    season, series_data = find_series_by_id(series_id, series_json['seasons'])
-    for t in tracks['audio']:
-        series_data['audio'].append({'lang': t['lang'], 'state': -1})
-    for t in tracks['subs']:
-        series_data['subs'].append({'lang': t['lang'], 'state': -1})
-    series_json = change_series_json(season, series_id, series_data, series_json)
-    put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
-
-    print(f'[MKV] State 5 - VIDEO')
-    t = tracks['video'][0]
-    vr = video(movie_id, series_id, t['ext'], base_video_path, streams, bitrates)
-    if not vr:
-        print(f'[MKV] Fail on state 4')
-        return False
-
-    print(f'[MKV] State 6 - AUDIO')
-    for t in tracks['audio']:
-        ar = audio(movie_id, series_id, t['lang'], t['ext'], f'{base_dir}/{t["fname"]}', t['bitrate'])
-        print(f'[MKV] State 6 - AUDIO - {t["lang"]}: code {int(ar)}')
-
-    print(f'[MKV] State 7 - SUBS')
-    for t in tracks['subs']:
-        subs(movie_id, series_id, t['lang'], t['length'])
-        print(f'[MKV] State 7 - SUBS - {t["lang"]}')
-
-    print('[MKV] Success')
-    return True

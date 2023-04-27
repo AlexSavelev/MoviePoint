@@ -8,5 +8,6 @@ parser.add_argument('title', required=False)
 parser.add_argument('review', required=False)
 
 search_parser = reqparse.RequestParser()
-search_parser.add_argument('movie', required=True, type=int)
+search_parser.add_argument('id', required=False, type=int)
+search_parser.add_argument('movie', required=False, type=int)
 search_parser.add_argument('publisher', required=False, type=int)

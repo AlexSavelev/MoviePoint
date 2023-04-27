@@ -84,7 +84,9 @@
                             {% endif %}
                             {% endfor %}
                         </ul>
+                        {% if series.video == 1 %}
                         <button onclick="location.href='/edit/{{movie_id}}/data/{{series.id}}/subs'" type="button" class="btn btn-primary">Загрузить</button>
+                        {% endif %}
                     </td>
                 {% else %}
                     {% if series.video == 1 %}

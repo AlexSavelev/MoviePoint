@@ -254,8 +254,53 @@ def review_add(movie_id):
                                                   'rating': int(form.rating.data),
                                                   'title': form.title.data,
                                                   'review': form.review.data})
-        return redirect(f'/reviews/add/{movie_id}')
+        return redirect(f'/watch/{movie_id}')
     return render_template('write_review.html', title='Комментарий', form=form, movie_title=movie_title)
+
+
+@app.route('/reviews/<int:self_review_id>/edit', methods=['GET', 'POST'])
+def review_change(self_review_id):
+    if check_user_is_not_authorized('/reviews/<int:self_review_id>/edit'):
+        return redirect('/login')
+
+    review = [i for i in get(f'{SITE_PATH}/api/v1/reviews').json()['reviews']
+              if i['id'] == self_review_id][0]
+    movie = review['movies']
+    movie_id = movie['id']
+    movie_title = movie['title']
+    is_publisher = review['publisher'] == current_user.id
+    if not is_publisher:
+        abort(404)
+
+    form = AddCommentForm()
+    if form.validate_on_submit():
+        delete(f'{SITE_PATH}/api/v1/reviews/{self_review_id}')
+        post(f'{SITE_PATH}/api/v1/reviews', json={'movie': movie_id,
+                                                  'publisher': current_user.id,
+                                                  'rating': int(form.rating.data),
+                                                  'title': form.title.data,
+                                                  'review': form.review.data})
+        return redirect(f'/watch/{movie_id}')
+    return render_template('write_review.html', title='Комментарий', form=form, movie_title=movie_title)
+
+
+@app.route('/reviews/<int:self_review_id>/remove', methods=['GET', 'POST'])
+def review_remove(self_review_id):
+    if check_user_is_not_authorized('/reviews/<int:self_review_id>/edit'):
+        return redirect('/login')
+
+    review = [i for i in get(f'{SITE_PATH}/api/v1/reviews').json()['reviews']
+              if i['id'] == self_review_id][0]
+    movie = review['movies']
+    movie_id = movie['id']
+    is_publisher = review['publisher'] == current_user.id
+    is_editor = (is_publisher or review['publisher'] in ADMINS)
+    if not is_editor:
+        abort(404)
+
+    delete(f'{SITE_PATH}/api/v1/reviews/{self_review_id}')
+
+    return redirect(f'/watch/{movie_id}')
 
 
 @app.route('/watch/<int:movie_id>')
@@ -312,6 +357,8 @@ def watch(movie_id):
                       json={'movie': movie_id, 'publisher': current_user.id}).json()['reviews']
     reviews = [i for i in get(f'{SITE_PATH}/api/v1/reviews/search', json={'movie': movie_id}).json()['reviews']
                if i['publisher'] != current_user.id][::-1]
+    print(self_review)
+    print(reviews)
 
     return render_template('watch.html', title=f'Смотреть "{movie_title}"', movie_title=movie_title, movie_id=movie_id,
                            publisher=movie['user']['username'], additional_css_links=additional_css_links,

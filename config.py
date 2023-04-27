@@ -5,7 +5,7 @@ PORT = 5000
 SITE_PATH = f'http://{HOST}:{PORT}'
 
 ENABLE_DATA_LOAD = True
-MEDIA_DATA_PATH = 'E:\\HLS'
+MEDIA_DATA_PATH = 'D:\\_Copies\\_HLS_SPLIT'
 
 # Movie types
 FULL_LENGTH = 'FL'
