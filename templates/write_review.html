@@ -8,18 +8,44 @@
 {% endblock %}
 
 {% block main %}
+<script>
+function cr(value) {
+    var span = document.getElementById("rv");
+    span.textContent = value;
+}
+</script>
+<div class="edit-info-block">
     <form action="" method="post" novalidate>
-        <div>
-            {{ form.csrf_token }}
-        </div>
-        {% for field in form if field.name != 'csrf_token' %}
-            <div>
-                {{ field.label() }}
-                {{ field() }}
-                {% for error in field.errors %}
-                    <div class="error">{{ error }}</div>
-                {% endfor %}
-            </div>
-        {% endfor %}
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.rating.label }}. Текущий рейтинг: <span id="rv" style="color: #000000;">10</span><br>
+            {{ form.rating(class="form-control", type="range", min="1", max="10", step="1", onchange="cr(this.value)") }}<br>
+            {% for error in form.rating.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.title.label }}<br>
+            {{ form.title(class="form-control") }}<br>
+            {% for error in form.title.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.review.label }}<br>
+            {{ form.review(class="form-control") }}<br>
+            {% for error in form.review.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        <div>{{ message }}</div>
     </form>
+</div>
 {% endblock %}

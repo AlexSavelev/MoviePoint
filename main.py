@@ -232,7 +232,7 @@ def stream_from_dir(movie_id, series_id, path, file_name):
 
 @app.route('/reviews/add/<int:movie_id>', methods=['GET', 'POST'])
 def review_add(movie_id):
-    if check_user_is_not_authorized('/reviews/add/<int:movie_id>'):
+    if check_user_is_not_authorized(f'/reviews/add/{movie_id}'):
         return redirect('/login')
 
     movie = get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()
@@ -258,13 +258,16 @@ def review_add(movie_id):
     return render_template('write_review.html', title='Комментарий', form=form, movie_title=movie_title)
 
 
-@app.route('/reviews/<int:self_review_id>/edit', methods=['GET', 'POST'])
-def review_change(self_review_id):
-    if check_user_is_not_authorized('/reviews/<int:self_review_id>/edit'):
+@app.route('/reviews/<int:review_id>/edit', methods=['GET', 'POST'])
+def review_change(review_id):
+    if check_user_is_not_authorized(f'/reviews/{review_id}/edit'):
         return redirect('/login')
 
-    review = [i for i in get(f'{SITE_PATH}/api/v1/reviews').json()['reviews']
-              if i['id'] == self_review_id][0]
+    review = get(f'{SITE_PATH}/api/v1/reviews/{review_id}').json()
+    if 'review' not in review:
+        abort(404)
+    review = review['review']
+
     movie = review['movies']
     movie_id = movie['id']
     movie_title = movie['title']
@@ -274,31 +277,36 @@ def review_change(self_review_id):
 
     form = AddCommentForm()
     if form.validate_on_submit():
-        delete(f'{SITE_PATH}/api/v1/reviews/{self_review_id}')
+        delete(f'{SITE_PATH}/api/v1/reviews/{review_id}')
         post(f'{SITE_PATH}/api/v1/reviews', json={'movie': movie_id,
                                                   'publisher': current_user.id,
                                                   'rating': int(form.rating.data),
                                                   'title': form.title.data,
                                                   'review': form.review.data})
         return redirect(f'/watch/{movie_id}')
+
+    form.rating.data, form.title.data, form.review.data = review['rating'], review['title'], review['review']
     return render_template('write_review.html', title='Комментарий', form=form, movie_title=movie_title)
 
 
-@app.route('/reviews/<int:self_review_id>/remove', methods=['GET', 'POST'])
-def review_remove(self_review_id):
-    if check_user_is_not_authorized('/reviews/<int:self_review_id>/edit'):
+@app.route('/reviews/<int:review_id>/remove', methods=['GET', 'POST'])
+def review_remove(review_id):
+    if check_user_is_not_authorized(f'/reviews/{review_id}/remove'):
         return redirect('/login')
 
-    review = [i for i in get(f'{SITE_PATH}/api/v1/reviews').json()['reviews']
-              if i['id'] == self_review_id][0]
+    review = get(f'{SITE_PATH}/api/v1/reviews/{review_id}').json()
+    if 'review' not in review:
+        abort(404)
+    review = review['review']
+
     movie = review['movies']
     movie_id = movie['id']
     is_publisher = review['publisher'] == current_user.id
-    is_editor = (is_publisher or review['publisher'] in ADMINS)
+    is_editor = is_publisher or (current_user.id in ADMINS)
     if not is_editor:
         abort(404)
 
-    delete(f'{SITE_PATH}/api/v1/reviews/{self_review_id}')
+    delete(f'{SITE_PATH}/api/v1/reviews/{review_id}')
 
     return redirect(f'/watch/{movie_id}')
 
@@ -313,7 +321,8 @@ def watch(movie_id):
         abort(404)
     movie = movie['movie']
     is_publisher = movie['publisher'] == current_user.id
-    is_editor = is_publisher or (current_user.id in ADMINS)
+    is_admin = current_user.id in ADMINS
+    is_editor = is_publisher or is_admin
     published = movie['user_released']
     if (not published) and (not is_editor):
         abort(404)
@@ -364,7 +373,7 @@ def watch(movie_id):
                            publisher=movie['user']['username'], additional_css_links=additional_css_links,
                            type=movie['type'], seasons=seasons, src=src, images=images, is_editor=is_editor,
                            published=published, description=description, is_publisher=is_publisher,
-                           self_review=self_review, reviews=reviews)
+                           self_review=self_review, reviews=reviews, is_admin=is_admin)
 
 
 @app.route('/my')
