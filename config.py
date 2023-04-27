@@ -5,7 +5,7 @@ PORT = 5000
 SITE_PATH = f'http://{HOST}:{PORT}'
 
 ENABLE_DATA_LOAD = True
-MEDIA_DATA_PATH = 'E:\\HLS'
+MEDIA_DATA_PATH = 'D:\\_Copies\\_HLS_SPLIT'
 
 # Movie types
 FULL_LENGTH = 'FL'
@@ -27,8 +27,45 @@ AGES = ['0+', '6+', '12+', '16+', '18+']
 IMAGES = ['jpg', 'jpe', 'jpeg', 'png', 'gif', 'svg', 'bmp']
 # Resolutions
 RESOLUTIONS = [4320, 2160, 1440, 1080, 720, 480, 360]
-# Codecs
-CODECS = ['h264/aac', 'h264/flac', 'h264/other', 'h265', 'hvc', 'xc']
+# MKV Codecs
+MKV_V_CODECS = {
+    'V_MPEG4/ISO/AVC': 'h264',
+    'V_MPEGH/ISO/HEVC': 'h265',
+    'V_QUICKTIME': 'mov'
+}
+MKV_A_CODECS = {
+    'A_MPEG/L3': 'mp3',
+    'A_PCM/INT/BIG': 'pcm',
+    'A_PCM/INT/LIT': 'pcm',
+    'A_PCM/FLOAT/IEEE': 'pcm',
+    'A_MPC': 'mpc',
+    'A_AC3': 'ac3',  # BEST
+    'A_AC3/BSID9': 'ac3',
+    'A_AC3/BSID10': 'ac3',
+    'A_ALAC': 'alac',
+    'A_DTS': 'dts',
+    'A_DTS/LOSSLESS': 'dts',
+    'A_VORBIS': 'ogg',
+    'A_FLAC': 'flac',  # BEST
+    'A_MS/ACM': 'acm',
+    'A_AAC/MPEG2/MAIN': 'aac',  # BEST
+    'A_AAC/MPEG2/LC': 'aac',  # BEST
+    'A_AAC/MPEG2/LC/SBR': 'aac',  # BEST
+    'A_AAC/MPEG2/SSR': 'aac',  # BEST
+    'A_AAC/MPEG4/MAIN': 'aac',  # BEST
+    'A_AAC/MPEG4/LC': 'aac',  # BEST
+    'A_AAC/MPEG4/LC/SBR': 'aac',  # BEST
+    'A_AAC/MPEG4/SSR': 'aac',  # BEST
+    'A_AAC/MPEG4/LTP': 'aac',  # BEST
+    'A_QUICKTIME': 'm4a',
+    'A_WAVPACK4': 'wav'  # BEST
+}
+MKV_S_CODECS = {
+    'S_TEXT/UTF8': 'txt',
+    'S_TEXT/SSA': 'ssa',
+    'S_TEXT/ASS': 'ass',  # BEST
+    'S_TEXT/WEBVTT': 'vtt'  # BEST
+}
 
 with open('admins.txt', 'r') as admin_f:
     ADMINS = [int(i.rstrip('\n')) for i in admin_f.readlines() if i]

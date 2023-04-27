@@ -5,7 +5,7 @@ from wtforms import StringField, SelectField, SelectMultipleField, SubmitField, 
 from wtforms.validators import DataRequired
 
 from requests import get
-from config import SITE_PATH, FULL_LENGTH, SERIES, AGES, IMAGES, LANG_MAP, CODECS
+from config import SITE_PATH, FULL_LENGTH, SERIES, AGES, IMAGES, LANG_MAP
 
 
 class MyNewForm(FlaskForm):
@@ -55,13 +55,10 @@ class EditSeriesTitleForm(FlaskForm):
 
 
 class EditSeriesVideoForm(FlaskForm):
-    content = FileField('Видео (mp4, h264, mkv (с кодеком h264))',
+    content = FileField('Видео (mp4, h264, mkv)',
                         validators=[FileRequired(), FileAllowed(['mp4', 'h264', 'mkv'],
                                                                 f'Загружать можно ТОЛЬКО ВИДЕО '
                                                                 f'форматов mp4, h264, mkv!')])
-    codec = SelectField('Установленный кодек',
-                        choices=[('auto', 'Авто')] + [(i, i.upper()) for i in CODECS])
-    audio_bitrate = IntegerField('Битрейт аудио (kbps)')
     audio_lang = SelectField('Аудио', choices=[('no', 'Нет')] + [(i, j[1]) for i, j in LANG_MAP.items()])
     submit = SubmitField('Загрузить')
 
@@ -76,7 +73,8 @@ class EditSeriesAudioForm(FlaskForm):
 
 class EditSeriesSubsForm(FlaskForm):
     lang = SelectField('Язык', choices=[(i, j[1]) for i, j in LANG_MAP.items()])
-    content = FileField('Субтитры (srt, vtt)', validators=[FileRequired(), FileAllowed(['srt', 'vtt'],
+    content = FileField('Субтитры (srt, vtt)', validators=[FileRequired(), FileAllowed(['srt', 'vtt', 'ass'],
                                                                                        f'Загружать можно ТОЛЬКО '
-                                                                                       f'СУБТИТРЫ форматов srt, vtt!')])
+                                                                                       f'СУБТИТРЫ форматов srt, '
+                                                                                       f'vtt, ass!')])
     submit = SubmitField('Загрузить')

@@ -527,25 +527,15 @@ def edit_data_series_video(movie_id: int, series: str):
     form = EditSeriesVideoForm()
     if form.validate_on_submit():
         data = form.content.data
-        codec = form.codec.data
-        audio_bitrate = form.audio_bitrate
         audio_lang = form.audio_lang.data
 
-        ext = data.filename.split('.')[-1]
+        ext = data.filename.split('.')[-1].lower()
         if ext == 'mkv':
-            if audio_lang != 'no' and audio_bitrate < 10:
-                return render_template('edit_data_series_video.html', title='Загрузка видео',
-                                       publisher=movie['user']['username'],
-                                       movie_title=movie['title'], movie_id=movie_id, form=form,
-                                       message='Укажите валидный битрейт!')
-            mkv_data = {'codec': codec, 'audio_bitrate': audio_bitrate}
+            result = movie_file_system.save_mkv(movie_id, series, data)
+        elif audio_lang == 'no':
+            result = movie_file_system.save_video(movie_id, series, ext, data)
         else:
-            mkv_data = {}
-
-        if audio_lang == 'no':
-            result = movie_file_system.save_video(movie_id, series, ext, data, **mkv_data)
-        else:
-            result = movie_file_system.save_video_and_audio_channel(movie_id, series, ext, audio_lang, data, **mkv_data)
+            result = movie_file_system.save_video_and_audio_channel(movie_id, series, ext, audio_lang, data)
 
         if not result:
             return render_template('edit_data_series_video.html', title='Загрузка видео',

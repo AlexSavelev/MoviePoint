@@ -13,23 +13,14 @@ function check() {
     oInput = document.getElementById("content");
     var sFileName = oInput.value;
     if (sFileName.length > 0) {
-        var ext = sFileName.split('.').pop();
+        var ext = sFileName.split('.').pop().toLowerCase();
         if(ext == "mkv") {
-            document.getElementById("codec_block").style.display = 'block';
+            document.getElementById("audio_lang_block").style.display = 'none';
         } else {
-            document.getElementById("codec_block").style.display = 'none';
+            document.getElementById("audio_lang_block").style.display = 'block';
         }
     } else {
-        document.getElementById("codec_block").style.display = 'none';
-    }
-}
-function check1() {
-    oInput = document.getElementById("audio_lang");
-    var sQ = oInput.value;
-    if(sq == "no") {
-        document.getElementById("audio_bitrate_block").style.display = 'none';
-    } else {
-        document.getElementById("audio_bitrate_block").style.display = 'block';
+        document.getElementById("audio_lang_block").style.display = 'block';
     }
 }
 </script>
@@ -45,28 +36,10 @@ function check1() {
                     </div>
                 {% endfor %}
                 </p>
-                <p id="codec_block">
-                {{ form.codec.label }}<br>
-                {{ form.codec(class="form-control", type="select") }}<br>
-                {% for error in form.codec.errors %}
-                    <div class="alert alert-danger" role="alert">
-                        {{ error }}
-                    </div>
-                {% endfor %}
-                </p>
-                <p>
+                <p id="audio_lang_block">
                 {{ form.audio_lang.label }}<br>
                 {{ form.audio_lang(class="form-control", type="select") }}<br>
                 {% for error in form.audio_lang.errors %}
-                    <div class="alert alert-danger" role="alert">
-                        {{ error }}
-                    </div>
-                {% endfor %}
-                </p>
-                <p id="audio_bitrate_block">
-                {{ form.audio_bitrate.label }}<br>
-                {{ form.audio_bitrate(class="form-control", type="number") }}<br>
-                {% for error in form.audio_bitrate.errors %}
                     <div class="alert alert-danger" role="alert">
                         {{ error }}
                     </div>
@@ -77,9 +50,8 @@ function check1() {
             </form>
             <script>
                 document.getElementById("content").onchange = function(){check();};
-                document.getElementById("audio_lang").onchange = function(){check1();};
+                document.getElementById("audio_lang").onchange = function(){check();};
                 check();
-                check1();
             </script>
 </div>
 {% endblock %}

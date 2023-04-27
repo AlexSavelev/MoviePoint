@@ -1,11 +1,12 @@
 import os
 import shutil
+import pysubs2
 import webvtt
-import subprocess
+import enzyme
 from multiprocessing import Process
 
 from misc import *
-from filesystem.ffprobe import FFProbe
+from filesystem.ffprobe import FFProbe, FFProbeError
 from filesystem import stream_handler
 
 
@@ -35,44 +36,17 @@ def remove_image(movie_id: int, filename: str):
     os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/img/{filename}')
 
 
-def save_video(movie_id: int, series_id: str, ext: str, content, **kwargs):  # h264/mp4/mkv
+def save_video(movie_id: int, series_id: str, ext: str, content):  # h264/mp4
     base_video_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/src.{ext}'
     content.save(base_video_path)
-
-    if ext == 'mkv':
-        print('[SAVE VIDEO] Converting MKV to MP4 - START')
-
-        codec = kwargs['codec']
-
-        if codec == 'h264':
-            command = f'"../../ffmpeg" -i src.mkv -c:v copy -c:a aac src.mp4'
-        else:
-            command = f'"../../ffmpeg" -i src.mkv -c:v libx264 -c:a aac src.mp4'
-        bat_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
-        bat_path = f'{bat_dir}/mkv_conv.bat'
-        with open(bat_path, 'w') as f:
-            f.write(command)
-        p = subprocess.Popen(bat_path, shell=True, stdout=subprocess.PIPE, cwd=bat_dir)
-        stdout, stderr = p.communicate()
-        result = p.returncode
-        os.remove(bat_path)
-
-        if result != 0:
-            os.remove(base_video_path)
-            print('[SAVE VIDEO] Converting MKV to MP4 - FAIL')
-            return False
-
-        ext = 'mp4'
-        base_video_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/src.{ext}'
-        print('[SAVE VIDEO] Converting MKV to MP4 - SUCCESS')
 
     try:
         metadata = FFProbe(base_video_path)
         max_height = int(metadata.video[0].height)
         max_bitrate = int(metadata.video[0].bit_rate) // 1000
-        if max_height < 100 or max_bitrate < 10:
+        if max_height < 300 or max_bitrate < 10:
             raise ValueError
-    except:
+    except (IOError, FFProbeError, ValueError):
         os.remove(base_video_path)
         return False
 
@@ -89,6 +63,78 @@ def save_video(movie_id: int, series_id: str, ext: str, content, **kwargs):  # h
     return True
 
 
+def save_mkv(movie_id: int, series_id: str, content):
+    base_video_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/src.mkv'
+    content.save(base_video_path)
+
+    try:
+        with open(base_video_path, 'rb') as f:
+            mkv = enzyme.MKV(f)
+            duration = mkv.info.duration.seconds
+        tracks = {
+            'video': [],
+            'audio': [],
+            'subs': []
+        }
+        # Video
+        t = mkv.video_tracks[0]
+        tracks['video'].append({
+            'id': t.number - 1,
+            'ext': MKV_V_CODECS[t.codec_id],
+            'duration': duration
+        })
+        # Audio
+        for t in mkv.audio_tracks:
+            tracks['audio'].append({
+                'id': t.number - 1,
+                'ext': MKV_A_CODECS[t.codec_id],
+                'bitrate': t.sampling_frequency,
+                'default': t.default,
+                'lang': t.language
+            })
+        # Subs
+        for t in mkv.subtitle_tracks:
+            tracks['subs'].append({
+                'id': t.number - 1,
+                'ext': MKV_S_CODECS[t.codec_id],
+                'default': t.default,
+                'lang': t.language
+            })
+    except (IndexError, ValueError, enzyme.Error):
+        os.remove(base_video_path)
+        return False
+
+    a_lang = {}
+    for lang in [t['lang'] for t in tracks['audio']]:
+        if lang not in a_lang:
+            a_lang[lang] = 0
+        a_lang[lang] += 1
+    for i in range(len(tracks['audio']) - 1, -1, -1):
+        if a_lang[tracks['audio'][i]['lang']] == 1:
+            continue
+        tracks['audio'][i]['lang'] += ('_' + str(a_lang[tracks['audio'][i]['lang']]))
+        tracks['audio'][i]['lang'] -= 1
+
+    a_lang = {}
+    for lang in [t['lang'] for t in tracks['subs']]:
+        if lang not in a_lang:
+            a_lang[lang] = 0
+        a_lang[lang] += 1
+    for i in range(len(tracks['subs']) - 1, -1, -1):
+        if a_lang[tracks['subs'][i]['lang']] == 1:
+            continue
+        tracks['subs'][i]['lang'] += ('_' + str(a_lang[tracks['subs'][i]['lang']]))
+        tracks['subs'][i]['lang'] -= 1
+
+    tracks['audio'].sort(key=lambda x: -int(x['default']))
+    tracks['subs'].sort(key=lambda x: -int(x['default']))
+
+    p1 = Process(target=stream_handler.mkv, args=(movie_id, series_id, base_video_path, tracks))
+    p1.start()
+
+    return True
+
+
 def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, content):  # aac/mp3
     os.mkdir(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/audio_{lang}')
 
@@ -100,7 +146,7 @@ def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, conte
         bitrate = int(metadata.audio[0].bit_rate) // 1000
         if bitrate < 10:
             raise ValueError
-    except:
+    except (IOError, FFProbeError, ValueError):
         return False
 
     p1 = Process(target=stream_handler.audio, args=(movie_id, series_id, lang, ext, base_audio_path, bitrate))
@@ -109,7 +155,7 @@ def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, conte
     return True
 
 
-def save_video_and_audio_channel(movie_id: int, series_id: str, ext: str, audio_lang: str, content, **kwargs):
+def save_video_and_audio_channel(movie_id: int, series_id: str, ext: str, audio_lang: str, content):
     audio_ext = 'aac'
 
     base_video_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/src.{ext}'
@@ -121,9 +167,9 @@ def save_video_and_audio_channel(movie_id: int, series_id: str, ext: str, audio_
         max_height = int(metadata.video[0].height)
         max_bitrate = int(metadata.video[0].bit_rate) // 1000
         audio_bitrate = int(metadata.audio[0].bit_rate) // 1000
-        if max_height < 100 or max_bitrate < 10 or audio_bitrate < 10:
+        if max_height < 300 or max_bitrate < 10 or audio_bitrate < 10:
             raise ValueError
-    except:
+    except (IOError, FFProbeError, ValueError):
         os.remove(base_video_path)
         return False
 
@@ -148,14 +194,12 @@ def save_subtitle_channel(movie_id: int, series_id: str, lang: str, ext: str, co
 
     if ext == 'vtt':
         content.save(base_sub_path)
-    elif ext == 'srt':
-        t_sub_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/subs/{lang}.srt'
+    else:
+        t_sub_path = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/subs/{lang}.{ext}'
         content.save(t_sub_path)
-        t = webvtt.from_srt(t_sub_path)
+        t = pysubs2.load(t_sub_path, encoding='utf-8')
         t.save(base_sub_path)
         os.remove(t_sub_path)
-    else:
-        return False
 
     length = webvtt.read(base_sub_path).total_length
 

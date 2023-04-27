@@ -41,7 +41,9 @@ def sort_series_list(series_list: list[dict]) -> None:
 def get_lang_full_name(lang: str):
     if lang in LANG_MAP:
         return LANG_MAP[lang][0]
-    return 'Undefined'
+    if len(lang) == 3:
+        return get_lang_full_name(lang[:-1])
+    return lang.upper()
 
 
 def find_series_by_id(series: str, seasons: dict) -> tuple:
@@ -67,5 +69,5 @@ def calculate_avg_rating(ratings: list[dict]) -> float:
 
 def build_streams_list(height: int) -> list[tuple]:
     if height not in RESOLUTIONS:
-        return [(i, int(height / k)) for i, k in enumerate([1, 1.5, 2.25, 2.25 * 1.333333])]
-    return [(i, s) for i, s in enumerate(RESOLUTIONS[RESOLUTIONS.index(height):])]
+        return [(i, int(height / k)) for i, k in enumerate([1, 1.5, 2.25, 2.25 * 1.333333]) if int(height / k) >= 300]
+    return [(i, s) for i, s in enumerate(RESOLUTIONS[RESOLUTIONS.index(height):]) if s >= 300]
