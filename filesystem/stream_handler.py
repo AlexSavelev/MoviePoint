@@ -225,9 +225,26 @@ def mkv(movie_id, series_id, base_mkv_path, tracks):
 
     print(f'[MKV] State 1 - VIDEO INFO')
 
-    command = f'"../../ffmpeg" -i {tracks["video"][0]["fname"]} -map 0 -c:v libx264 -crf 5 -c:a copy src.h264'
+    t = f'{base_dir}/{tracks["video"][0]["fname"]}'
+    try:
+        metadata = FFProbe(t)
+        framerate = int(metadata.video[0].framerate)
+        if framerate < 1:
+            raise ValueError
+    except (IOError, FFProbeError, ValueError):
+        print('[MKV] Fail on state 1')
+        os.remove(t)
+        series_json = json.loads(get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()['movie']['series'])
+        season, series_data = find_series_by_id(series_id, series_json['seasons'])
+        series_data['video'] = 0
+        series_json = change_series_json(season, series_id, series_data, series_json)
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
+        return False
+
+    command = f'"../../ffmpeg" -i {tracks["video"][0]["fname"]} -map 0 -c:v libx264 -crf 5 ' \
+              f'-vframes {framerate} src.h264'
     bat_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
-    bat_path = f'{bat_dir}/mkv_extract.bat'
+    bat_path = f'{bat_dir}/video_h264.bat'
     with open(bat_path, 'w') as f:
         f.write(command)
     p = subprocess.Popen(bat_path, shell=True, stdout=subprocess.PIPE, cwd=bat_dir)
