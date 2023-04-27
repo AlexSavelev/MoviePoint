@@ -904,6 +904,13 @@ def edit_remove(movie_id: int):
     if ('movie' not in movie) or (movie['movie']['publisher'] != current_user.id and current_user.id not in ADMINS):
         abort(404)
 
+    series_json = json.loads(movie['movie']['series'])
+    for season in series_json['seasons'].values():
+        for t in season:
+            if t['video'] == -1 or any([i['state'] == -1 for i in t['audio']]) or \
+                    any([i['state'] == -1 for i in t['subs']]):
+                return '<h1>Отказано! В данный момент идет обработка видео!</h1>'
+
     delete(f'{SITE_PATH}/api/v1/movies/{movie_id}')
     movie_file_system.remove(movie_id)
 

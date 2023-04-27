@@ -32,7 +32,7 @@ def add_param_to_streams(master_path: str, param: str):
         f.writelines(data)
 
 
-def video(movie_id, series_id, ext, base_video_path, streams, bitrates):
+def video(movie_id, series_id, ext, base_video_path, streams, bitrates, remove_src=True):
     print(f'[video handler] starting with streams: {streams} and bitrates {bitrates}')
 
     command = f'"../../ffmpeg" -y -i src.{ext} -hls_time 8 -hls_list_size 0 ' \
@@ -51,12 +51,15 @@ def video(movie_id, series_id, ext, base_video_path, streams, bitrates):
     os.remove(bat_path)
 
     print(f'[video handler] exit code {result}')
+    if remove_src:
+        os.remove(base_video_path)
 
     series_json = json.loads(get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()['movie']['series'])
     season, series_data = find_series_by_id(series_id, series_json['seasons'])
 
     if result != 0:
-        os.remove(base_video_path)
+        if not remove_src:
+            os.remove(base_video_path)
         try:
             os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/master.m3u8')
         except OSError:
@@ -95,13 +98,13 @@ def audio(movie_id, series_id, lang, ext, base_audio_path, bitrate):
     stdout, stderr = p.communicate()
     result = p.returncode
     os.remove(bat_path)
+    os.remove(base_audio_path)
 
     series_json = json.loads(get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()['movie']['series'])
     season, series_data = find_series_by_id(series_id, series_json['seasons'])
     is_first_audio = len(series_data['audio']) == 1 or all([i['state'] != 1 for i in series_data['audio']])
 
     if result != 0:
-        os.remove(base_audio_path)
         shutil.rmtree(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/audio_{lang}')
         try:
             os.remove(f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}/a_{lang}.m3u8')
@@ -137,7 +140,7 @@ def audio(movie_id, series_id, lang, ext, base_audio_path, bitrate):
 
 def video_and_audio(movie_id, series_id, ext, base_video_path, streams, bitrates,
                     audio_lang, audio_ext, base_audio_path, audio_bitrate):
-    vr = video(movie_id, series_id, ext, base_video_path, streams, bitrates)
+    vr = video(movie_id, series_id, ext, base_video_path, streams, bitrates, remove_src=False)
     if not vr:
         return False
 
@@ -150,6 +153,7 @@ def video_and_audio(movie_id, series_id, ext, base_video_path, streams, bitrates
     stdout, stderr = p.communicate()
     result = p.returncode
     os.remove(bat_path)
+    os.remove(base_video_path)
 
     if result != 0:
         os.remove(base_audio_path)

@@ -91,6 +91,7 @@ def mkv_video_normalize(series_dir, tracks):
     stdout, stderr = p.communicate()
     result = p.returncode
     os.remove(bat_path)
+    os.remove(video_path)
 
     tracks['video'][0]['fname'] = f'src.{ext}'  # Working with new video src
 
@@ -223,5 +224,6 @@ def mkv(movie_id, series_id, tracks):
         stream_handler.subs(movie_id, series_id, t['lang'], t['length'])
         print(f'[MKV] State 7 - SUBS - {t["lang"]}')
 
+    os.remove(f'{series_dir}/src.mkv')
     print('[MKV] Success')
     return True

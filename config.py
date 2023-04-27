@@ -16,9 +16,12 @@ MAX_MOVIE_COUNT = 20
 # Languages
 LANG_MAP = {
     'ru': ('Russian', 'Русский'),
+    'rus': ('Russian', 'Русский'),
     'en': ('English', 'Английский'),
+    'eng': ('English', 'Английский'),
     'fr': ('French', 'Француский'),
     'ja': ('Japanese', 'Японский'),
+    'jpn': ('Japanese', 'Японский'),
     'zh': ('Chinese', 'Китайский')
 }
 # Ages
