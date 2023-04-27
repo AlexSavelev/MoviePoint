@@ -34,7 +34,9 @@ MKV_V_CODECS = {
     'V_QUICKTIME': 'mov'
 }
 MKV_A_CODECS = {
+    'A_MPEG': 'mp3',
     'A_MPEG/L3': 'mp3',
+    'A_PCM': 'pcm',
     'A_PCM/INT/BIG': 'pcm',
     'A_PCM/INT/LIT': 'pcm',
     'A_PCM/FLOAT/IEEE': 'pcm',
@@ -48,6 +50,7 @@ MKV_A_CODECS = {
     'A_VORBIS': 'ogg',
     'A_FLAC': 'flac',  # BEST
     'A_MS/ACM': 'acm',
+    'A_AAC': 'aac',  # BEST
     'A_AAC/MPEG2/MAIN': 'aac',  # BEST
     'A_AAC/MPEG2/LC': 'aac',  # BEST
     'A_AAC/MPEG2/LC/SBR': 'aac',  # BEST
@@ -58,6 +61,7 @@ MKV_A_CODECS = {
     'A_AAC/MPEG4/SSR': 'aac',  # BEST
     'A_AAC/MPEG4/LTP': 'aac',  # BEST
     'A_QUICKTIME': 'm4a',
+    'A_WAV': 'wav',
     'A_WAVPACK4': 'wav'  # BEST
 }
 MKV_S_CODECS = {

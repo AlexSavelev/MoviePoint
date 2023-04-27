@@ -36,7 +36,7 @@ def add_param_to_streams(master_path: str, param: str):
         f.writelines(data)
 
 
-def video(movie_id, series_id, ext, base_video_path, streams, bitrates):
+def video(movie_id, series_id, ext, base_video_path, streams, bitrates, extra_cmd_arg=''):
     print(f'[video handler] starting with streams: {streams} and bitrates {bitrates}')
 
     command = f'"../../ffmpeg" -y -i src.{ext} -hls_time 8 -hls_list_size 0 ' \
@@ -44,7 +44,7 @@ def video(movie_id, series_id, ext, base_video_path, streams, bitrates):
               f'{" ".join([f"-b:v:{stream[0]} {b}k" for stream, b in zip(streams, bitrates)])} ' \
               f'{" ".join([f"-map 0:v"] * len(streams))} ' \
               f'-var_stream_map "{" ".join([f"v:{stream[0]}" for stream in streams])}" -master_pl_name master.m3u8 ' \
-              f'-hls_segment_filename stream_%%v/data%%04d.ts stream_%%v.m3u8'
+              f'{extra_cmd_arg}-hls_segment_filename stream_%%v/data%%04d.ts stream_%%v.m3u8'
     bat_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
     bat_path = f'{bat_dir}/v.bat'
     with open(bat_path, 'w') as f:
@@ -190,7 +190,7 @@ def subs(movie_id, series_id, lang, length):
 
 
 def mkv(movie_id, series_id, base_mkv_path, tracks):
-    tracks['video'][0]['fname'] = f'src.{tracks["video"][0]["ext"]}'
+    tracks['video'][0]['fname'] = f'v.{tracks["video"][0]["ext"]}'
     for t in tracks['audio']:
         t['fname'] = f'{t["lang"]}.{t["ext"]}'
     for t in tracks['subs']:
@@ -211,6 +211,30 @@ def mkv(movie_id, series_id, base_mkv_path, tracks):
     result = p.returncode
     os.remove(bat_path)
 
+    if result != 0:
+        print('[MKV] Fail on state 0')
+        os.remove(base_mkv_path)
+        series_json = json.loads(get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()['movie']['series'])
+        season, series_data = find_series_by_id(series_id, series_json['seasons'])
+        series_data['video'] = 0
+        series_json = change_series_json(season, series_id, series_data, series_json)
+        put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
+        return False
+
+    base_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
+
+    print(f'[MKV] State 1 - VIDEO INFO')
+
+    command = f'"../../ffmpeg" -i {tracks["video"][0]["fname"]} -map 0 -c:v libx264 -crf 5 -c:a copy src.h264'
+    bat_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
+    bat_path = f'{bat_dir}/mkv_extract.bat'
+    with open(bat_path, 'w') as f:
+        f.write(command)
+    p = subprocess.Popen(bat_path, shell=True, stdout=subprocess.PIPE, cwd=bat_dir)
+    stdout, stderr = p.communicate()
+    result = p.returncode
+    os.remove(bat_path)
+
     series_json = json.loads(get(f'{SITE_PATH}/api/v1/movies/{movie_id}').json()['movie']['series'])
     season, series_data = find_series_by_id(series_id, series_json['seasons'])
 
@@ -222,10 +246,8 @@ def mkv(movie_id, series_id, base_mkv_path, tracks):
         put(f'{SITE_PATH}/api/v1/movies/{movie_id}', json={'series': json.dumps(series_json)})
         return False
 
-    base_dir = f'{MEDIA_DATA_PATH}/{movie_id}/{series_id}'
-
-    print(f'[MKV] State 1 - VIDEO INFO')
-    base_video_path = f'{base_dir}/{tracks["video"][0]["fname"]}'
+    tracks["video"][0]["fname"] = 'src.h264'
+    base_video_path = f'{base_dir}/src.h264'
     try:
         metadata = FFProbe(base_video_path)
         max_height = int(metadata.video[0].height)
@@ -260,7 +282,7 @@ def mkv(movie_id, series_id, base_mkv_path, tracks):
         ext = t['ext']
         fname = t['fname']
         f_path = f'{base_dir}/{fname}'
-        r_path = f'{base_dir}/subs/{fname}'
+        r_path = f'{base_dir}/subs/{t["lang"]}.vtt'
         if ext == 'vtt':
             os.rename(f_path, r_path)
         else:
