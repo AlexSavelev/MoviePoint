@@ -142,6 +142,7 @@
         {% endif %}
     </div>
     <div class="movie-info-block">
+        <p>Рейтинг: <span class="movie-comment-rating">{{rating}}</span></p>
         {% for i in description %}
             {% if not i[1] and i[2] %}
                 <p>{{i[0]}}: Не указано</p>
@@ -152,6 +153,9 @@
     </div>
     <div class="movie-comments-block">
         <h2 class="page-mid-title">Рецензии</h2>
+        {% if not self_review and not reviews %}
+        <p>Рецензий пока нет</p>
+        {% endif %}
         {% if self_review %}
         <div class="movie-comment movie-self-comment">
             <p class="movie-comment-rating">{{self_review[0].rating}}/10</p>

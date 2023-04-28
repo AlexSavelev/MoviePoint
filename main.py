@@ -362,18 +362,29 @@ def watch(movie_id):
                    ('Жанры', movie['genres'], True), ('Возрастной рейтинг', movie['age'], True),
                    ('Описание', movie['description'], True)]
 
-    self_review = get(f'{SITE_PATH}/api/v1/reviews/search',
-                      json={'movie': movie_id, 'publisher': current_user.id}).json()['reviews']
-    reviews = [i for i in get(f'{SITE_PATH}/api/v1/reviews/search', json={'movie': movie_id}).json()['reviews']
-               if i['publisher'] != current_user.id][::-1]
-    print(self_review)
-    print(reviews)
+    all_reviews = get(f'{SITE_PATH}/api/v1/reviews/search', json={'movie': movie_id}).json()['reviews']
+    rating = calculate_avg_rating(all_reviews)
+
+    if rating == 0:
+        rating = 'НЕТ'
+    elif int(rating) == rating:
+        rating = f'{int(rating)}/10'
+    else:
+        rating = f'{rating}/10'
+
+    self_review, reviews = [], []
+    for i in all_reviews:
+        if i['publisher'] == current_user.id:
+            self_review.append(i)
+        else:
+            reviews.append(i)
+    reviews = reviews[::-1]
 
     return render_template('watch.html', title=f'Смотреть "{movie_title}"', movie_title=movie_title, movie_id=movie_id,
                            publisher=movie['user']['username'], additional_css_links=additional_css_links,
                            type=movie['type'], seasons=seasons, src=src, images=images, is_editor=is_editor,
                            published=published, description=description, is_publisher=is_publisher,
-                           self_review=self_review, reviews=reviews, is_admin=is_admin)
+                           self_review=self_review, reviews=reviews, is_admin=is_admin, rating=rating)
 
 
 @app.route('/my')
