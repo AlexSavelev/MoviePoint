@@ -57,7 +57,5 @@ flowchart TD
     U --> W(data0001.ts)
     W --> X(...)
 
-    T --> |Russian subtitles| Y(data0000.ts)
-    Y --> Z(data0001.ts)
-    Z --> V(...)
+    T --> |Russian subtitles| Y(subs/ru.vtt)
 ```

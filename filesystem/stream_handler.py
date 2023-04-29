@@ -177,7 +177,7 @@ def subs(movie_id, series_id, lang, length):
     if is_first_subs:
         add_param_to_streams(master_path, f',SUBTITLES="subs"')
     param = f'#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="{get_lang_full_name(lang)}",' \
-            f'DEFAULT={"YES" if is_first_subs else "NO"},AUTOSELECT=YES,FORCED=NO,LANGUAGE="{lang}",' \
+            f'DEFAULT={"YES" if is_first_subs or lang == "ru" else "NO"},AUTOSELECT=YES,FORCED=NO,LANGUAGE="{lang}",' \
             f'URI="s_{lang}.m3u8"\n\n'
     add_media_param(master_path, param)
 
