@@ -39,8 +39,18 @@ def sort_series_list(series_list: list[dict]) -> None:
 
 
 def get_lang_full_name(lang: str):
-    if lang in LANG_MAP:
-        return LANG_MAP[lang][0]
+    local_lang_map = {
+        'ru': ('Russian', 'Русский'),
+        'rus': ('Russian', 'Русский'),
+        'en': ('English', 'Английский'),
+        'eng': ('English', 'Английский'),
+        'fr': ('French', 'Француский'),
+        'ja': ('Japanese', 'Японский'),
+        'jpn': ('Japanese', 'Японский'),
+        'zh': ('Chinese', 'Китайский')
+    }
+    if lang in local_lang_map:
+        return local_lang_map[lang][0]
     if len(lang) == 3:
         return get_lang_full_name(lang[:-1])
     return lang.upper()

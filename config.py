@@ -5,7 +5,7 @@ PORT = 5000
 SITE_PATH = f'http://{HOST}:{PORT}'
 
 ENABLE_DATA_LOAD = True
-MEDIA_DATA_PATH = 'D:\\_Copies\\_HLS_SPLIT'
+MEDIA_DATA_PATH = 'E:\\HLS'
 
 # Movie types
 FULL_LENGTH = 'FL'
@@ -16,12 +16,9 @@ MAX_MOVIE_COUNT = 20
 # Languages
 LANG_MAP = {
     'ru': ('Russian', 'Русский'),
-    'rus': ('Russian', 'Русский'),
     'en': ('English', 'Английский'),
-    'eng': ('English', 'Английский'),
     'fr': ('French', 'Француский'),
     'ja': ('Japanese', 'Японский'),
-    'jpn': ('Japanese', 'Японский'),
     'zh': ('Chinese', 'Китайский')
 }
 # Ages
