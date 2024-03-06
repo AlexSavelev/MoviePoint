@@ -26,7 +26,7 @@ from forms.edit import MyNewForm, EditCoverForm, EditImagesForm, EditMovieForm, 
 
 app = Flask(__name__)
 api = Api(app)
-app.config['SECRET_KEY'] = 'nRLhAQWy'
+app.config['SECRET_KEY'] = SECRET_KEY
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -997,4 +997,4 @@ if __name__ == '__main__':
     api.add_resource(reviews_resources.ReviewsResource, '/api/v1/reviews/<int:rev_id>')
     api.add_resource(reviews_resources.ReviewsSearch, '/api/v1/reviews/search')
 
-    app.run(port=PORT, host=SETUP_HOST, debug=True)
+    app.run(port=PORT, host=SETUP_HOST)

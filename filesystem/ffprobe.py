@@ -57,6 +57,8 @@ class FFProbe:
 
             for line in iter(p.stderr.readline, b''):
                 line = line.decode('UTF-8')
+                if line.startswith('ffprobe') or line.startswith('  built') or line.startswith('  configuration'):
+                    continue
 
                 if 'Metadata:' in line and not stream_metadata_met:
                     is_metadata = True
