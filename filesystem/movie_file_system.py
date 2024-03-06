@@ -48,7 +48,7 @@ def save_video(movie_id: int, series_id: str, ext: str, content):  # h264/mp4
         max_bitrate = int(metadata.video[0].bit_rate) // 1000
         if max_height < 300 or max_bitrate < 10:
             raise ValueError
-    except (IOError, FFProbeError, ValueError):
+    except (IOError, FFProbeError, ValueError, IndexError):
         os.remove(base_video_path)
         return False
 
@@ -76,7 +76,7 @@ def save_audio_channel(movie_id: int, series_id: str, lang: str, ext: str, conte
         bitrate = int(metadata.audio[0].bit_rate) // 1000
         if bitrate < 10:
             raise ValueError
-    except (IOError, FFProbeError, ValueError):
+    except (IOError, FFProbeError, ValueError, IndexError):
         return False
 
     p1 = Process(target=stream_handler.audio, args=(movie_id, series_id, lang, ext, base_audio_path, bitrate))
@@ -99,7 +99,7 @@ def save_video_and_audio_channel(movie_id: int, series_id: str, ext: str, audio_
         audio_bitrate = int(metadata.audio[0].bit_rate) // 1000
         if max_height < 300 or max_bitrate < 10 or audio_bitrate < 10:
             raise ValueError
-    except (IOError, FFProbeError, ValueError):
+    except (IOError, FFProbeError, ValueError, IndexError):
         os.remove(base_video_path)
         return False
 
